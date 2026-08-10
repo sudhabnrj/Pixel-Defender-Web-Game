@@ -2,6 +2,10 @@
    PIXEL DEFENDER — GAME ENTITIES & WEAPONS
    ========================================================================== */
 
+// Preload Advance Ship Image Sprite
+const shipImage = new Image();
+shipImage.src = 'images/gun.png';
+
 const WEAPONS = {
   1: {
     id: 1,
@@ -54,13 +58,13 @@ class Star {
   }
 }
 
-// Advanced Spaceship Fighter Jet (Matching Reference Image)
+// Advanced Spaceship Fighter Jet (Renders Sprite images/gun.png)
 class Player {
   constructor(canvasWidth, canvasHeight) {
-    this.width = 56;
-    this.height = 48;
+    this.width = 60;
+    this.height = 54;
     this.x = canvasWidth / 2 - this.width / 2;
-    this.y = canvasHeight - 75;
+    this.y = canvasHeight - 80;
     this.speed = 480;
     this.lastShotTime = 0;
     this.invulnerableTimer = 0;
@@ -68,7 +72,7 @@ class Player {
 
   reset(canvasWidth, canvasHeight) {
     this.x = canvasWidth / 2 - this.width / 2;
-    this.y = canvasHeight - 75;
+    this.y = canvasHeight - 80;
     this.lastShotTime = 0;
     this.invulnerableTimer = 0;
   }
@@ -104,7 +108,7 @@ class Player {
       lasers.push(new Laser(this.x + this.width - 10, this.y, 0, -750, '#00f0ff', 4, 16));
     } 
     else if (weapon.id === 2) {
-      // Phoenix 5-Way Golden Cannon & Option Drone Barrage (Matching Reference Image)
+      // Phoenix 5-Way Golden Cannon & Option Drone Barrage (Using gun.png image sprite)
       lasers.push(new Laser(centerX, this.y - 5, 0, -820, '#ffcc00', 8, 24, true)); // Central heavy beam
       lasers.push(new Laser(this.x + 8, this.y + 4, -120, -780, '#ffaa00', 5, 18));
       lasers.push(new Laser(this.x + this.width - 8, this.y + 4, 120, -780, '#ffaa00', 5, 18));
@@ -137,9 +141,9 @@ class Player {
     ctx.save();
     ctx.translate(this.x, this.y);
 
-    // Draw Option Drones (Side Pods matching reference image!)
+    // Draw Option Drones (Side Pods) when advance gun is selected
     if (selectedWeaponId >= 2) {
-      const droneOffset = 30;
+      const droneOffset = 32;
 
       // Left Drone Pod
       ctx.save();
@@ -196,48 +200,37 @@ class Player {
     ctx.closePath();
     ctx.fill();
 
-    // Main Ship Body (Red/Orange/Silver Metallic Fighter Jet)
-    ctx.fillStyle = '#e65c00'; // Orange hull
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = '#ffaa00';
+    // Render gun.png sprite if loaded
+    if (shipImage.complete && shipImage.naturalWidth !== 0) {
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = selectedWeaponId >= 2 ? '#ffaa00' : '#00f0ff';
+      ctx.drawImage(shipImage, 0, 0, this.width, this.height);
+    } else {
+      // Fallback vector drawing
+      ctx.fillStyle = '#e65c00';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#ffaa00';
 
-    ctx.beginPath();
-    // Nose tip
-    ctx.moveTo(this.width / 2, 0);
-    // Right wing upper
-    ctx.lineTo(this.width - 4, this.height - 18);
-    // Right wingtip fin
-    ctx.lineTo(this.width, this.height - 4);
-    // Right wing lower
-    ctx.lineTo(this.width - 12, this.height);
-    // Center back
-    ctx.lineTo(this.width / 2, this.height - 6);
-    // Left wing lower
-    ctx.lineTo(12, this.height);
-    // Left wingtip fin
-    ctx.lineTo(0, this.height - 4);
-    // Left wing upper
-    ctx.lineTo(4, this.height - 18);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(this.width / 2, 0);
+      ctx.lineTo(this.width - 4, this.height - 18);
+      ctx.lineTo(this.width, this.height - 4);
+      ctx.lineTo(this.width - 12, this.height);
+      ctx.lineTo(this.width / 2, this.height - 6);
+      ctx.lineTo(12, this.height);
+      ctx.lineTo(0, this.height - 4);
+      ctx.lineTo(4, this.height - 18);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
 
-    // Metallic Armor Plates & Cannons
-    ctx.fillStyle = '#2a2d34';
-    ctx.fillRect(this.width / 2 - 14, 14, 6, 22);
-    ctx.fillRect(this.width / 2 + 8, 14, 6, 22);
-
-    // Glowing Red/Orange Oval Cockpit Glass
-    ctx.fillStyle = '#ff0033';
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = '#ff0033';
-    ctx.beginPath();
-    ctx.ellipse(this.width / 2, 22, 6, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#ffcc00';
-    ctx.stroke();
+      ctx.fillStyle = '#ff0033';
+      ctx.beginPath();
+      ctx.ellipse(this.width / 2, 22, 6, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     ctx.restore();
   }

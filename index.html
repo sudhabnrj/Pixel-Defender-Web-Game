@@ -43,9 +43,9 @@
         </div>
       </div>
 
-      <!-- Weapon Equipped Badge in HUD -->
+      <!-- Weapon Equipped Badge in HUD with gun.png icon preview -->
       <div class="weapon-badge-hud" id="hudWeaponBadge">
-        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <img src="images/gun.png" alt="Gun Icon" style="width:18px; height:18px; object-fit:contain;">
         <span>GUN:</span> <strong id="hudWeaponName">CYAN DUAL</strong>
       </div>
 
@@ -112,10 +112,12 @@
             <div class="weapon-desc">Standard Laser</div>
           </div>
           <div class="weapon-card locked" id="wCard2" onclick="window.selectWeapon(2)">
+            <img src="images/gun.png" alt="Phoenix Gun" style="width:28px; height:28px; margin-bottom:4px; object-fit:contain;">
             <div class="weapon-name">2. PHOENIX SPREAD</div>
             <div class="weapon-desc">Unlock at Lvl 3</div>
           </div>
           <div class="weapon-card locked" id="wCard3" onclick="window.selectWeapon(3)">
+            <img src="images/gun.png" alt="Hyper Gun" style="width:28px; height:28px; margin-bottom:4px; filter:hue-rotate(90deg); object-fit:contain;">
             <div class="weapon-name">3. HYPER BEAM</div>
             <div class="weapon-desc">Unlock at Lvl 6</div>
           </div>
