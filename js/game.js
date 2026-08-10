@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PIXEL DEFENDER — MAIN GAME ENGINE & CONTROLLER
+   PIXEL DEFENDER — MAIN GAME ENGINE (8-WAY MOVEMENT & DYNAMIC MODE BACKGROUNDS)
    ========================================================================== */
 
 (function() {
@@ -11,6 +11,7 @@
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   const gameContainer = document.getElementById('gameContainer');
+  const gameWrapper = document.querySelector('.game-wrapper');
 
   let canvasWidth = 760;
   let canvasHeight = 570;
@@ -20,46 +21,54 @@
 
   function resizeCanvasToContainer() {
     const rect = gameContainer.getBoundingClientRect();
-    canvasWidth = rect.width;
-    canvasHeight = rect.height;
+    canvasWidth = Math.floor(rect.width);
+    canvasHeight = Math.floor(rect.height);
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
     if (player) {
-      player.y = canvasHeight - 75;
+      player.updateDimensions(selectedWeaponId);
       if (player.x > canvasWidth - player.width) {
         player.x = canvasWidth - player.width - 10;
       }
     }
   }
 
-  // Dynamic Window Size Stages (Every 3 Levels)
   function updateContainerSizeForLevel(lvl) {
     let stageClass = 'stage-1';
-    if (lvl >= 10) {
-      stageClass = 'stage-4'; // 100% full screen
-    } else if (lvl >= 7) {
-      stageClass = 'stage-3';
-    } else if (lvl >= 4) {
-      stageClass = 'stage-2';
-    }
+    if (lvl >= 10) stageClass = 'stage-4';
+    else if (lvl >= 7) stageClass = 'stage-3';
+    else if (lvl >= 4) stageClass = 'stage-2';
 
     if (!gameContainer.classList.contains(stageClass)) {
-      gameContainer.className = 'game-container ' + stageClass;
-      setTimeout(() => {
-        resizeCanvasToContainer();
-      }, 400);
-
-      showBanner(`LEVEL ${lvl}: DEFENSE ZONE EXPANDED!`);
+      gameContainer.className = `game-container ${stageClass} mode-${currentMode.toLowerCase()}`;
+      setTimeout(resizeCanvasToContainer, 420);
+      showBanner(`LEVEL ${lvl} / 100: DEFENSE ZONE EXPANDED!`);
     }
   }
 
-  function showBanner(text) {
+  function showBanner(text, isDanger = false) {
     const banner = document.getElementById('bannerNotif');
+    if (!banner) return;
     banner.textContent = text;
+    if (isDanger) banner.classList.add('danger-banner');
+    else banner.classList.remove('danger-banner');
+
     banner.classList.add('show');
-    setTimeout(() => {
-      banner.classList.remove('show');
-    }, 3200);
+    setTimeout(() => { 
+      banner.classList.remove('show'); 
+      banner.classList.remove('danger-banner');
+    }, 3600);
+  }
+
+  function triggerDangerBossAlert() {
+    sounds.playDangerSiren();
+    showBanner('⚠️ DANGER DETECTED! DANGER SHIP BOSS APPROACHING! ⚠️', true);
+
+    const dangerOverlay = document.getElementById('dangerOverlay');
+    if (dangerOverlay) {
+      dangerOverlay.classList.add('active');
+      setTimeout(() => { dangerOverlay.classList.remove('active'); }, 3000);
+    }
   }
 
   window.addEventListener('resize', resizeCanvasToContainer);
@@ -68,11 +77,18 @@
   const hudScore = document.getElementById('hudScore');
   const hudLevel = document.getElementById('hudLevel');
   const hudLives = document.getElementById('hudLives');
+  const hudModeBadge = document.getElementById('hudModeBadge');
   const hudWeaponName = document.getElementById('hudWeaponName');
+  const hudWeaponImg = document.getElementById('hudWeaponImg');
+  const hudUserBadge = document.getElementById('hudUserBadge');
 
   const startScreen = document.getElementById('startScreen');
   const pauseScreen = document.getElementById('pauseScreen');
   const gameOverScreen = document.getElementById('gameOverScreen');
+  const victoryScreen = document.getElementById('victoryScreen');
+  const victoryScore = document.getElementById('victoryScore');
+  const victoryHighScore = document.getElementById('victoryHighScore');
+  const guestConvertBox = document.getElementById('guestConvertBox');
 
   const startBtn = document.getElementById('startBtn');
   const resumeBtn = document.getElementById('resumeBtn');
@@ -89,64 +105,66 @@
     START: 'START',
     PLAYING: 'PLAYING',
     PAUSED: 'PAUSED',
-    GAME_OVER: 'GAME_OVER'
+    GAME_OVER: 'GAME_OVER',
+    VICTORY: 'VICTORY'
   };
 
   let gameState = STATES.START;
   let score = 0;
   let level = 1;
   let lives = 3;
+  let currentMode = 'EASY';
   let highScore = parseInt(localStorage.getItem('pixel_defender_highscore') || '0', 10);
   let lastTime = 0;
   let spawnTimer = 0;
+  let megaStoneSpawnTimer = 0;
+  let shieldItemSpawnTimer = 0;
   let screenShake = 0;
 
   const stars = Array.from({ length: 80 }, () => new Star(canvasWidth, canvasHeight));
   const player = new Player(canvasWidth, canvasHeight);
   let lasers = [];
+  let enemyLasers = [];
   let enemies = [];
+  let megaStones = [];
+  let shieldItems = [];
   let particles = [];
 
   // ------------------------------------------------------------------------
-  // 3. INPUT HANDLING
+  // 3. 8-WAY INPUT HANDLING & QUIT GAME
   // ------------------------------------------------------------------------
-  const keys = {
-    left: false,
-    right: false,
-    shoot: false
-  };
+  const keys = { left: false, right: false, up: false, down: false, shoot: false };
 
   window.addEventListener('keydown', (e) => {
-    if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD'].includes(e.code)) {
-      e.preventDefault();
+    if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
+      if (document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+      }
     }
+
+    if (document.activeElement.tagName === 'INPUT') return;
 
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
     if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+    if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = true;
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = true;
 
     if (e.code === 'Digit1') selectWeapon(1);
     if (e.code === 'Digit2') selectWeapon(2);
     if (e.code === 'Digit3') selectWeapon(3);
 
-    if (e.code === 'KeyP' || e.code === 'Escape') {
-      togglePause();
-    }
-
-    if (e.code === 'KeyM') {
-      sounds.init();
-      sounds.toggleMute();
-    }
+    if (e.code === 'KeyP' || e.code === 'Escape') togglePause();
+    if (e.code === 'KeyM') { sounds.init(); sounds.toggleMute(); }
 
     if (e.code === 'KeyR') {
-      if (gameState === STATES.PLAYING || gameState === STATES.PAUSED || gameState === STATES.GAME_OVER) {
-        sounds.init();
-        startGame();
+      if (gameState === STATES.PLAYING || gameState === STATES.PAUSED || gameState === STATES.GAME_OVER || gameState === STATES.VICTORY) {
+        sounds.init(); startGame();
       }
     }
 
     if (e.code === 'Space') {
       keys.shoot = true;
-      if (gameState === STATES.START || gameState === STATES.GAME_OVER) {
+      if (gameState === STATES.START || gameState === STATES.GAME_OVER || gameState === STATES.VICTORY) {
         startGame();
       }
     }
@@ -155,10 +173,11 @@
   window.addEventListener('keyup', (e) => {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
     if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+    if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = false;
     if (e.code === 'Space') keys.shoot = false;
   });
 
-  // Weapon Selector Handler
   function selectWeapon(wId) {
     const wDef = WEAPONS[wId];
     if (!wDef) return;
@@ -169,7 +188,12 @@
     }
 
     selectedWeaponId = wId;
+    player.updateDimensions(selectedWeaponId);
+
     hudWeaponName.textContent = wDef.name;
+    if (hudWeaponImg) {
+      hudWeaponImg.src = `images/char${wId}.webp`;
+    }
 
     [1, 2, 3].forEach(id => {
       const card = document.getElementById(`wCard${id}`);
@@ -192,7 +216,6 @@
     });
   }
 
-  // Bind Buttons & Icon Buttons
   startBtn.addEventListener('click', () => { sounds.init(); startGame(); });
   resumeBtn.addEventListener('click', () => { togglePause(); });
   restartBtn.addEventListener('click', () => { sounds.init(); startGame(); });
@@ -209,6 +232,22 @@
     btn.addEventListener('click', () => { sounds.init(); sounds.toggleMute(); });
   });
 
+  document.querySelectorAll('.js-quit-btn').forEach(btn => {
+    btn.addEventListener('click', () => { quitGame(); });
+  });
+
+  function quitGame() {
+    gameState = STATES.START;
+    gameContainer.className = 'game-container stage-1 mode-easy';
+    if (gameWrapper) gameWrapper.className = 'game-wrapper mode-easy';
+    setTimeout(resizeCanvasToContainer, 300);
+
+    pauseScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+    if (victoryScreen) victoryScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+  }
+
   function togglePause() {
     if (gameState === STATES.PLAYING) {
       gameState = STATES.PAUSED;
@@ -217,6 +256,7 @@
     } else if (gameState === STATES.PAUSED) {
       gameState = STATES.PLAYING;
       pauseScreen.classList.add('hidden');
+      resizeCanvasToContainer();
     }
   }
 
@@ -239,52 +279,166 @@
   }
 
   // ------------------------------------------------------------------------
-  // 5. COLLISION DETECTION
+  // 5. DIFFICULTY MODES & DYNAMIC BACKGROUND SWITCHING (bg-easy, bg-medium, bg-hard)
+  // ------------------------------------------------------------------------
+  function checkDifficultyMode() {
+    let newMode = 'EASY';
+    if (score >= 5000) {
+      newMode = 'HARD';
+    } else if (score >= 2000) {
+      newMode = 'MEDIUM';
+    }
+
+    if (newMode !== currentMode) {
+      currentMode = newMode;
+      showBanner(`DIFFICULTY MODE: ${currentMode}!`);
+
+      // Switch mode background class dynamically!
+      const modeClass = `mode-${currentMode.toLowerCase()}`;
+      if (gameWrapper) {
+        gameWrapper.className = `game-wrapper ${modeClass}`;
+      }
+      gameContainer.className = gameContainer.className.replace(/mode-(easy|medium|hard)/g, '') + ` ${modeClass}`;
+
+      updateHUD();
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // 6. COLLISION DETECTION
   // ------------------------------------------------------------------------
   function checkCollisions() {
+    const pCenterX = player.x + player.width / 2;
+    const pCenterY = player.y + player.height / 2;
+
+    for (let s = shieldItems.length - 1; s >= 0; s--) {
+      const item = shieldItems[s];
+      const dx = pCenterX - item.x;
+      const dy = pCenterY - item.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < item.size + player.width * 0.4) {
+        item.markedForDeletion = true;
+        player.shieldHp = 2;
+        sounds.playShieldPickup();
+        showBanner('🛡️ PROTECTIVE FORCEFIELD SHIELD ACTIVATED!');
+        createExplosion(item.x, item.y, '#00ffff', 25);
+      }
+    }
+
     for (let l = lasers.length - 1; l >= 0; l--) {
       const laser = lasers[l];
+
       for (let e = enemies.length - 1; e >= 0; e--) {
         const enemy = enemies[e];
-
         const dx = laser.x - enemy.x;
         const dy = laser.y - enemy.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < enemy.size + laser.width) {
           if (!laser.isCentral) laser.markedForDeletion = true;
-          enemy.markedForDeletion = true;
+          enemy.hp -= 1;
+          enemy.hitFlashTimer = 0.08;
 
-          score += 100;
-          updateHUD();
+          createExplosion(laser.x, laser.y, enemy.isDanger ? '#ff0055' : '#ffaa00', 5);
 
-          const newLevel = Math.floor(score / 1000) + 1;
-          if (newLevel > level) {
-            level = newLevel;
-            sounds.playLevelUp();
+          if (enemy.hp <= 0) {
+            enemy.markedForDeletion = true;
+            score += 100;
+            checkDifficultyMode();
             updateHUD();
 
-            updateContainerSizeForLevel(level);
-            updateWeaponLockUI();
+            const newLevel = Math.min(100, Math.floor(score / 1200) + 1);
+            if (newLevel > level) {
+              level = newLevel;
+              sounds.playLevelUp();
+              updateHUD();
 
-            if (level === 3) {
-              showBanner('NEW ADVANCE GUN UNLOCKED: PHOENIX SPREAD (PRESS 2)!');
-            } else if (level === 6) {
-              showBanner('NEW ADVANCE GUN UNLOCKED: HYPER BEAM (PRESS 3)!');
+              updateContainerSizeForLevel(level);
+              updateWeaponLockUI();
+
+              if (level === 5) {
+                selectWeapon(2);
+                showBanner('AUTOMATIC UPGRADE: HERO EVOLVED TO PHOENIX SPREAD!');
+              } else if (level === 10) {
+                selectWeapon(3);
+                showBanner('AUTOMATIC UPGRADE: HERO EVOLVED TO HYPER BEAM!');
+              }
+
+              createExplosion(canvasWidth / 2, canvasHeight / 3, '#ffaa00', 45, true);
+
+              if (level === 100 && score >= 1200 * 99 + 100) {
+                triggerVictory();
+                return;
+              }
             }
 
-            createExplosion(canvasWidth / 2, canvasHeight / 3, '#ffaa00', 45, true);
+            createExplosion(enemy.x, enemy.y, enemy.isDanger ? '#ff0055' : '#ffaa00', 18);
           }
+          break;
+        }
+      }
 
-          createExplosion(enemy.x, enemy.y, enemy.color, 16);
+      for (let ms = megaStones.length - 1; ms >= 0; ms--) {
+        const stone = megaStones[ms];
+        const dx = laser.x - stone.x;
+        const dy = laser.y - stone.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < stone.width / 2 + laser.width) {
+          if (!laser.isCentral) laser.markedForDeletion = true;
+          stone.hp -= 1;
+          stone.hitFlashTimer = 0.08;
+
+          createExplosion(laser.x, laser.y, '#ff00aa', 6);
+
+          if (stone.hp <= 0) {
+            stone.markedForDeletion = true;
+            score += 500;
+            lives = Math.min(5, lives + 1);
+            sounds.playLevelUp();
+
+            showBanner('DANGER SHIP DESTROYED! +500 PTS & +1 EXTRA LIFE!');
+            createExplosion(stone.x, stone.y, '#ff00aa', 75, true);
+            updateHUD();
+          }
           break;
         }
       }
     }
 
     if (player.invulnerableTimer <= 0) {
-      const pCenterX = player.x + player.width / 2;
-      const pCenterY = player.y + player.height / 2;
+
+      for (let el = enemyLasers.length - 1; el >= 0; el--) {
+        const eLaser = enemyLasers[el];
+        const dx = pCenterX - eLaser.x;
+        const dy = pCenterY - eLaser.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < player.width * 0.45) {
+          eLaser.markedForDeletion = true;
+
+          if (player.shieldHp > 0) {
+            player.shieldHp -= 1;
+            sounds.playShieldHit();
+            screenShake = 0.15;
+            player.invulnerableTimer = 0.6;
+            createExplosion(eLaser.x, eLaser.y, '#00ffff', 18);
+            if (player.shieldHp === 0) {
+              showBanner('🛡️ FORCEFIELD SHIELD SHATTERED!');
+            }
+          } else {
+            lives--;
+            updateHUD();
+            sounds.playHit();
+            screenShake = 0.3;
+            player.invulnerableTimer = 1.5;
+            createExplosion(eLaser.x, eLaser.y, '#ff0055', 20, true);
+            if (lives <= 0) triggerGameOver();
+          }
+          break;
+        }
+      }
 
       for (let e = enemies.length - 1; e >= 0; e--) {
         const enemy = enemies[e];
@@ -294,17 +448,24 @@
 
         if (dist < enemy.size + player.width * 0.4) {
           enemy.markedForDeletion = true;
-          lives--;
-          updateHUD();
 
-          sounds.playHit();
-          screenShake = 0.3;
-          player.invulnerableTimer = 1.5;
-
-          createExplosion(enemy.x, enemy.y, '#ff0055', 26, true);
-
-          if (lives <= 0) {
-            triggerGameOver();
+          if (player.shieldHp > 0) {
+            player.shieldHp -= 1;
+            sounds.playShieldHit();
+            screenShake = 0.2;
+            player.invulnerableTimer = 0.8;
+            createExplosion(enemy.x, enemy.y, '#00ffff', 24, true);
+            if (player.shieldHp === 0) {
+              showBanner('🛡️ FORCEFIELD SHIELD SHATTERED!');
+            }
+          } else {
+            lives--;
+            updateHUD();
+            sounds.playHit();
+            screenShake = 0.3;
+            player.invulnerableTimer = 1.5;
+            createExplosion(enemy.x, enemy.y, '#ff0055', 26, true);
+            if (lives <= 0) triggerGameOver();
           }
           break;
         }
@@ -313,47 +474,77 @@
   }
 
   // ------------------------------------------------------------------------
-  // 6. SPAWNING SYSTEM
+  // 7. SPAWNING SYSTEM
   // ------------------------------------------------------------------------
-  function handleSpawning(dt) {
-    const baseInterval = 1.1;
-    const minInterval = 0.32;
-    const currentInterval = Math.max(minInterval, baseInterval - (level - 1) * 0.08);
+  function handleSpawning(dt, timestamp) {
+    const baseInterval = currentMode === 'HARD' ? 0.7 : (currentMode === 'MEDIUM' ? 0.9 : 1.15);
+    const minInterval = 0.38;
+    const currentInterval = Math.max(minInterval, baseInterval - (level - 1) * 0.007);
 
     spawnTimer += dt;
     if (spawnTimer >= currentInterval) {
       spawnTimer = 0;
-      enemies.push(new Enemy(level, canvasWidth));
+      enemies.push(new Enemy(level, currentMode, canvasWidth));
+    }
+
+    megaStoneSpawnTimer += dt;
+    const megaInterval = currentMode === 'HARD' ? 14 : (currentMode === 'MEDIUM' ? 18 : 24);
+    if (megaStoneSpawnTimer >= megaInterval && megaStones.length === 0) {
+      megaStoneSpawnTimer = 0;
+      megaStones.push(new MegaStone(level, canvasWidth));
+      triggerDangerBossAlert();
+    }
+
+    shieldItemSpawnTimer += dt;
+    if (shieldItemSpawnTimer >= 75 && shieldItems.length === 0) {
+      shieldItemSpawnTimer = 0;
+      shieldItems.push(new ShieldItem(canvasWidth));
     }
   }
 
   // ------------------------------------------------------------------------
-  // 7. HUD & LIFECYCLE MANAGEMENT
+  // 8. HUD & LIFECYCLE MANAGEMENT
   // ------------------------------------------------------------------------
   function updateHUD() {
     hudScore.textContent = score.toString().padStart(6, '0');
-    hudLevel.textContent = level.toString();
+    hudLevel.textContent = `${level} / 100`;
 
-    let heartsStr = '';
-    for (let i = 0; i < 3; i++) {
-      heartsStr += (i < lives) ? '♥ ' : '♡ ';
+    hudModeBadge.textContent = currentMode;
+    hudModeBadge.className = `mode-badge ${currentMode.toLowerCase()}`;
+
+    if (hudLives) {
+      hudLives.innerHTML = '';
+      const displayCount = Math.max(3, lives);
+      for (let i = 0; i < displayCount; i++) {
+        const img = document.createElement('img');
+        img.src = 'images/helth.png';
+        img.alt = 'Health Kit';
+        img.className = 'health-kit-icon' + (i >= lives ? ' lost' : '');
+        hudLives.appendChild(img);
+      }
     }
-    hudLives.textContent = heartsStr.trim();
   }
 
   function startGame() {
     score = 0;
     level = 1;
     lives = 3;
+    currentMode = 'EASY';
     spawnTimer = 0;
+    megaStoneSpawnTimer = 0;
+    shieldItemSpawnTimer = 0;
     screenShake = 0;
     selectedWeaponId = 1;
 
     lasers = [];
+    enemyLasers = [];
     enemies = [];
+    megaStones = [];
+    shieldItems = [];
     particles = [];
 
-    gameContainer.className = 'game-container stage-1';
+    if (gameWrapper) gameWrapper.className = 'game-wrapper mode-easy';
+    gameContainer.className = 'game-container stage-1 mode-easy';
     setTimeout(resizeCanvasToContainer, 300);
 
     player.reset(canvasWidth, canvasHeight);
@@ -361,11 +552,33 @@
     updateWeaponLockUI();
 
     hudWeaponName.textContent = WEAPONS[1].name;
+    if (hudWeaponImg) hudWeaponImg.src = 'images/char1.webp';
 
     gameState = STATES.PLAYING;
     startScreen.classList.add('hidden');
     pauseScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
+    if (victoryScreen) victoryScreen.classList.add('hidden');
+  }
+
+  window.startGame = startGame;
+
+  function triggerVictory() {
+    gameState = STATES.VICTORY;
+    sounds.playLevelUp();
+
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('pixel_defender_highscore', highScore.toString());
+    }
+
+    if (window.authManager) {
+      authManager.saveHighScore(score);
+    }
+
+    if (victoryScore) victoryScore.textContent = score;
+    if (victoryHighScore) victoryHighScore.textContent = highScore;
+    if (victoryScreen) victoryScreen.classList.remove('hidden');
   }
 
   function triggerGameOver() {
@@ -379,21 +592,28 @@
       isNewHigh = true;
     }
 
+    if (window.authManager) {
+      authManager.saveHighScore(score);
+    }
+
     finalScoreEl.textContent = score;
-    finalLevelEl.textContent = level;
+    finalLevelEl.textContent = `${level} / 100`;
     highScoreEl.textContent = highScore;
 
-    if (isNewHigh) {
-      newHighScoreTag.classList.remove('hidden');
-    } else {
-      newHighScoreTag.classList.add('hidden');
+    if (isNewHigh) newHighScoreTag.classList.remove('hidden');
+    else newHighScoreTag.classList.add('hidden');
+
+    if (window.authManager && authManager.isGuest && guestConvertBox) {
+      guestConvertBox.classList.remove('hidden');
+    } else if (guestConvertBox) {
+      guestConvertBox.classList.add('hidden');
     }
 
     gameOverScreen.classList.remove('hidden');
   }
 
   // ------------------------------------------------------------------------
-  // 8. MAIN GAME LOOP
+  // 9. MAIN GAME LOOP
   // ------------------------------------------------------------------------
   function gameLoop(timestamp) {
     if (!lastTime) lastTime = timestamp;
@@ -409,8 +629,7 @@
       ctx.translate(shakeX, shakeY);
     }
 
-    ctx.fillStyle = '#020208';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     stars.forEach(star => {
       star.update(dt, canvasWidth, canvasHeight);
@@ -418,27 +637,38 @@
     });
 
     if (gameState === STATES.PLAYING) {
-      handleSpawning(dt);
-      player.update(dt, timestamp, keys, selectedWeaponId, lasers, particles, sounds, canvasWidth);
+      handleSpawning(dt, timestamp);
+      player.update(dt, timestamp, keys, selectedWeaponId, lasers, particles, sounds, canvasWidth, canvasHeight);
 
       lasers.forEach(l => l.update(dt, canvasWidth));
+      enemyLasers.forEach(el => el.update(dt, canvasHeight));
       enemies.forEach(e => e.update(dt, canvasHeight));
+      megaStones.forEach(ms => ms.update(dt, timestamp, enemyLasers, canvasHeight, canvasWidth));
+      shieldItems.forEach(si => si.update(dt, canvasHeight));
       particles.forEach(p => p.update(dt));
 
       checkCollisions();
 
       lasers = lasers.filter(l => !l.markedForDeletion);
+      enemyLasers.forEach(el => el.draw(ctx));
       enemies = enemies.filter(e => !e.markedForDeletion);
+      megaStones = megaStones.filter(ms => !ms.markedForDeletion);
+      shieldItems = shieldItems.filter(si => !si.markedForDeletion);
       particles = particles.filter(p => !p.markedForDeletion);
 
       lasers.forEach(l => l.draw(ctx));
       enemies.forEach(e => e.draw(ctx));
+      megaStones.forEach(ms => ms.draw(ctx));
+      shieldItems.forEach(si => si.draw(ctx));
       particles.forEach(p => p.draw(ctx));
       player.draw(ctx, selectedWeaponId);
 
-    } else if (gameState === STATES.PAUSED) {
+    } else if (gameState === STATES.PAUSED || gameState === STATES.VICTORY) {
       lasers.forEach(l => l.draw(ctx));
+      enemyLasers.forEach(el => el.draw(ctx));
       enemies.forEach(e => e.draw(ctx));
+      megaStones.forEach(ms => ms.draw(ctx));
+      shieldItems.forEach(si => si.draw(ctx));
       particles.forEach(p => p.draw(ctx));
       player.draw(ctx, selectedWeaponId);
 

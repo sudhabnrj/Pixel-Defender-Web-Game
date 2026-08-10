@@ -1,32 +1,49 @@
 /* ==========================================================================
-   PIXEL DEFENDER — GAME ENTITIES & WEAPONS
+   PIXEL DEFENDER — GAME ENTITIES & LARGER CHARACTER SCALING
    ========================================================================== */
 
-// Preload Advance Ship Image Sprite
-const shipImage = new Image();
-shipImage.src = 'images/gun.png';
+// Preload Character, Background & Stone Assets
+const char1Image = new Image(); char1Image.src = 'images/char1.webp';
+const char2Image = new Image(); char2Image.src = 'images/char2.webp';
+const char3Image = new Image(); char3Image.src = 'images/char3.webp';
+
+const bgEasyImg = new Image(); bgEasyImg.src = 'images/bg-easy.webp';
+const bgMediumImg = new Image(); bgMediumImg.src = 'images/bg-medium.webp';
+const bgHardImg = new Image(); bgHardImg.src = 'images/bg-hard.webp';
+
+const dangerShipImage = new Image(); dangerShipImage.src = 'images/danger-ship.webp';
+
+// Preload Custom Stone WebP Sprites
+const stoneImages = [];
+for (let i = 1; i <= 9; i++) {
+  const img = new Image();
+  img.src = `images/stone${i}.webp`;
+  stoneImages.push(img);
+}
+const dangerStoneImage = new Image();
+dangerStoneImage.src = 'images/stone-danger.webp';
 
 const WEAPONS = {
   1: {
     id: 1,
-    name: 'CYAN DUAL',
+    name: 'NORMAL - BLASTER',
     reqLevel: 1,
     cooldown: 140, // ms
-    description: 'Standard Wing Lasers'
+    description: 'Standard Blaster Rifle'
   },
   2: {
     id: 2,
     name: 'PHOENIX SPREAD',
-    reqLevel: 3,
+    reqLevel: 5,
     cooldown: 130, // ms
-    description: '5-Way Plasma & Drone Fire'
+    description: '5-Way Plasma & Drone Cannon'
   },
   3: {
     id: 3,
-    name: 'HYPER BEAM',
-    reqLevel: 6,
+    name: 'ADVANCE - HYPER BEAM',
+    reqLevel: 10,
     cooldown: 110, // ms
-    description: 'Heavy Golden Plasma Beam'
+    description: 'Heavy Advance Plasma Beam'
   }
 };
 
@@ -58,33 +75,112 @@ class Star {
   }
 }
 
-// Advanced Spaceship Fighter Jet (Renders Sprite images/gun.png)
+// Shield Power-up Capsule Item
+class ShieldItem {
+  constructor(canvasWidth) {
+    this.size = 26;
+    this.x = Math.random() * (canvasWidth - this.size * 2) + this.size;
+    this.y = -this.size * 2;
+    this.speed = 100;
+    this.markedForDeletion = false;
+    this.pulseAngle = 0;
+  }
+
+  update(dt, canvasHeight) {
+    this.y += this.speed * dt;
+    this.pulseAngle += 4 * dt;
+    if (this.y > canvasHeight + this.size * 2) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    const glowSize = Math.sin(this.pulseAngle) * 3 + 15;
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.25)';
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#00f0ff';
+
+    ctx.beginPath();
+    ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#00ffff';
+    ctx.beginPath();
+    ctx.moveTo(0, -10);
+    ctx.lineTo(9, -4);
+    ctx.lineTo(7, 6);
+    ctx.lineTo(0, 11);
+    ctx.lineTo(-7, 6);
+    ctx.lineTo(-9, -4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
+// Hero Character Defender (Larger Character Sizes: Normal 80x86, Medium 98x104, Hard 116x122)
 class Player {
   constructor(canvasWidth, canvasHeight) {
-    this.width = 60;
-    this.height = 54;
+    this.width = 80;
+    this.height = 86;
     this.x = canvasWidth / 2 - this.width / 2;
-    this.y = canvasHeight - 80;
+    this.y = canvasHeight - 110;
     this.speed = 480;
     this.lastShotTime = 0;
     this.invulnerableTimer = 0;
+    this.shieldHp = 0;
   }
 
   reset(canvasWidth, canvasHeight) {
+    this.width = 80;
+    this.height = 86;
     this.x = canvasWidth / 2 - this.width / 2;
-    this.y = canvasHeight - 80;
+    this.y = canvasHeight - 110;
     this.lastShotTime = 0;
     this.invulnerableTimer = 0;
+    this.shieldHp = 0;
   }
 
-  update(dt, currentTime, keys, selectedWeaponId, lasers, particles, sounds, canvasWidth) {
+  updateDimensions(selectedWeaponId) {
+    if (selectedWeaponId === 3) {
+      this.width = 116;
+      this.height = 122;
+    } else if (selectedWeaponId === 2) {
+      this.width = 98;
+      this.height = 104;
+    } else {
+      this.width = 80;
+      this.height = 86;
+    }
+  }
+
+  update(dt, currentTime, keys, selectedWeaponId, lasers, particles, sounds, canvasWidth, canvasHeight) {
+    this.updateDimensions(selectedWeaponId);
+
     if (keys.left) this.x -= this.speed * dt;
     if (keys.right) this.x += this.speed * dt;
+    if (keys.up) this.y -= this.speed * dt;
+    if (keys.down) this.y += this.speed * dt;
 
     if (this.x < 10) this.x = 10;
     if (this.x > canvasWidth - this.width - 10) {
       this.x = canvasWidth - this.width - 10;
     }
+
+    const minY = canvasHeight * 0.38;
+    const maxY = canvasHeight - this.height - 10;
+    if (this.y < minY) this.y = minY;
+    if (this.y > maxY) this.y = maxY;
 
     if (this.invulnerableTimer > 0) {
       this.invulnerableTimer -= dt;
@@ -103,29 +199,24 @@ class Player {
     const centerX = this.x + this.width / 2;
 
     if (weapon.id === 1) {
-      // Standard Dual Cyan Lasers
-      lasers.push(new Laser(this.x + 10, this.y, 0, -750, '#00f0ff', 4, 16));
-      lasers.push(new Laser(this.x + this.width - 10, this.y, 0, -750, '#00f0ff', 4, 16));
+      lasers.push(new Laser(centerX - 10, this.y, 0, -780, '#00f0ff', 5, 18));
+      lasers.push(new Laser(centerX + 10, this.y, 0, -780, '#00f0ff', 5, 18));
     } 
     else if (weapon.id === 2) {
-      // Phoenix 5-Way Golden Cannon & Option Drone Barrage (Using gun.png image sprite)
-      lasers.push(new Laser(centerX, this.y - 5, 0, -820, '#ffcc00', 8, 24, true)); // Central heavy beam
-      lasers.push(new Laser(this.x + 8, this.y + 4, -120, -780, '#ffaa00', 5, 18));
-      lasers.push(new Laser(this.x + this.width - 8, this.y + 4, 120, -780, '#ffaa00', 5, 18));
-      // Option Drone Support Fire
-      lasers.push(new Laser(this.x - 22, this.y + 15, -220, -750, '#ff00aa', 4, 16));
-      lasers.push(new Laser(this.x + this.width + 22, this.y + 15, 220, -750, '#ff00aa', 4, 16));
+      lasers.push(new Laser(centerX, this.y - 5, 0, -840, '#ffcc00', 9, 26, true));
+      lasers.push(new Laser(this.x + 10, this.y + 4, -130, -780, '#ffaa00', 6, 20));
+      lasers.push(new Laser(this.x + this.width - 10, this.y + 4, 130, -780, '#ffaa00', 6, 20));
+      lasers.push(new Laser(this.x - 24, this.y + 15, -230, -750, '#ff00aa', 5, 18));
+      lasers.push(new Laser(this.x + this.width + 24, this.y + 15, 230, -750, '#ff00aa', 5, 18));
     } 
     else if (weapon.id === 3) {
-      // Hyper Beam Barrage
-      lasers.push(new Laser(centerX - 6, this.y - 8, 0, -900, '#ffffff', 14, 30, true));
-      lasers.push(new Laser(this.x + 4, this.y + 2, -180, -820, '#ffaa00', 6, 20));
-      lasers.push(new Laser(this.x + this.width - 4, this.y + 2, 180, -820, '#ffaa00', 6, 20));
-      lasers.push(new Laser(this.x - 26, this.y + 12, -320, -780, '#ff00aa', 5, 18));
-      lasers.push(new Laser(this.x + this.width + 26, this.y + 12, 320, -780, '#ff00aa', 5, 18));
+      lasers.push(new Laser(centerX - 8, this.y - 8, 0, -920, '#ffffff', 16, 32, true));
+      lasers.push(new Laser(this.x + 6, this.y + 2, -190, -820, '#ffaa00', 7, 22));
+      lasers.push(new Laser(this.x + this.width - 6, this.y + 2, 190, -820, '#ffaa00', 7, 22));
+      lasers.push(new Laser(this.x - 28, this.y + 12, -340, -780, '#ff00aa', 6, 20));
+      lasers.push(new Laser(this.x + this.width + 28, this.y + 12, 340, -780, '#ff00aa', 6, 20));
     }
 
-    // Recoil particles
     for (let i = 0; i < 4; i++) {
       particles.push(new Particle(
         centerX, this.y + this.height, 
@@ -141,13 +232,11 @@ class Player {
     ctx.save();
     ctx.translate(this.x, this.y);
 
-    // Draw Option Drones (Side Pods) when advance gun is selected
     if (selectedWeaponId >= 2) {
-      const droneOffset = 32;
+      const droneOffset = 38;
 
-      // Left Drone Pod
       ctx.save();
-      ctx.translate(-droneOffset, 15);
+      ctx.translate(-droneOffset, 20);
       ctx.fillStyle = '#ff6600';
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1.5;
@@ -160,15 +249,12 @@ class Player {
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
-
-      // Pink Trail Stream
       ctx.fillStyle = '#ff00aa';
       ctx.fillRect(-2, 8, 4, 12 + Math.random() * 8);
       ctx.restore();
 
-      // Right Drone Pod
       ctx.save();
-      ctx.translate(this.width + droneOffset, 15);
+      ctx.translate(this.width + droneOffset, 20);
       ctx.fillStyle = '#ff6600';
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1.5;
@@ -181,55 +267,49 @@ class Player {
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
-
-      // Pink Trail Stream
       ctx.fillStyle = '#ff00aa';
       ctx.fillRect(-2, 8, 4, 12 + Math.random() * 8);
       ctx.restore();
     }
 
-    // Main Thruster Flames
-    const flameH = Math.random() * 12 + 14;
-    ctx.fillStyle = '#ffaa00';
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = '#ffaa00';
-    ctx.beginPath();
-    ctx.moveTo(this.width / 2 - 8, this.height - 4);
-    ctx.lineTo(this.width / 2, this.height - 4 + flameH);
-    ctx.lineTo(this.width / 2 + 8, this.height - 4);
-    ctx.closePath();
-    ctx.fill();
-
-    // Render gun.png sprite if loaded
-    if (shipImage.complete && shipImage.naturalWidth !== 0) {
-      ctx.shadowBlur = 14;
-      ctx.shadowColor = selectedWeaponId >= 2 ? '#ffaa00' : '#00f0ff';
-      ctx.drawImage(shipImage, 0, 0, this.width, this.height);
-    } else {
-      // Fallback vector drawing
-      ctx.fillStyle = '#e65c00';
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = '#ffaa00';
+    if (this.shieldHp > 0) {
+      ctx.save();
+      const time = Date.now() / 150;
+      const shieldRadius = Math.max(this.width, this.height) * 0.72 + Math.sin(time) * 3;
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
+      ctx.strokeStyle = this.shieldHp > 1 ? '#00ffff' : '#ffaa00';
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = '#00f0ff';
 
       ctx.beginPath();
-      ctx.moveTo(this.width / 2, 0);
-      ctx.lineTo(this.width - 4, this.height - 18);
-      ctx.lineTo(this.width, this.height - 4);
-      ctx.lineTo(this.width - 12, this.height);
-      ctx.lineTo(this.width / 2, this.height - 6);
-      ctx.lineTo(12, this.height);
-      ctx.lineTo(0, this.height - 4);
-      ctx.lineTo(4, this.height - 18);
-      ctx.closePath();
+      ctx.arc(this.width / 2, this.height / 2, shieldRadius, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#ff0033';
-      ctx.beginPath();
-      ctx.ellipse(this.width / 2, 22, 6, 12, 0, 0, Math.PI * 2);
-      ctx.fill();
+      for (let i = 0; i < 3; i++) {
+        const orbitAngle = time + (i * Math.PI * 2 / 3);
+        const nodeX = this.width / 2 + Math.cos(orbitAngle) * shieldRadius;
+        const nodeY = this.height / 2 + Math.sin(orbitAngle) * shieldRadius;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(nodeX, nodeY, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    let charSprite = char1Image;
+    if (selectedWeaponId === 2) charSprite = char2Image;
+    else if (selectedWeaponId === 3) charSprite = char3Image;
+
+    if (charSprite.complete && charSprite.naturalWidth !== 0) {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = selectedWeaponId === 3 ? '#ffaa00' : (selectedWeaponId === 2 ? '#ff00aa' : '#00f0ff');
+      ctx.drawImage(charSprite, 0, 0, this.width, this.height);
+    } else {
+      ctx.fillStyle = '#00f0ff';
+      ctx.fillRect(0, 0, this.width, this.height);
     }
 
     ctx.restore();
@@ -270,44 +350,78 @@ class Laser {
   }
 }
 
+class EnemyLaser {
+  constructor(x, y, vx = 0, vy = 380) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.width = 6;
+    this.height = 18;
+    this.markedForDeletion = false;
+  }
+
+  update(dt, canvasHeight) {
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    if (this.y > canvasHeight + 20) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.fillStyle = '#ff0055';
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#ff0055';
+    ctx.fillRect(this.x - this.width / 2, this.y, this.width, this.height);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(this.x - 1, this.y + 2, 2, this.height - 4);
+    ctx.restore();
+  }
+}
+
+// Asteroid Enemy
 class Enemy {
-  constructor(lvl, canvasWidth) {
-    this.size = Math.random() * 24 + 20;
+  constructor(lvl, mode, canvasWidth) {
+    this.size = Math.random() * 10 + 16;
     this.x = Math.random() * (canvasWidth - this.size * 2) + this.size;
     this.y = -this.size * 2;
 
     const baseSpeed = Math.random() * 85 + 95;
-    const speedMultiplier = 1 + (lvl - 1) * 0.15;
+    const speedMultiplier = 1 + (lvl - 1) * 0.022;
     this.speed = baseSpeed * speedMultiplier;
 
     this.rotation = Math.random() * Math.PI * 2;
     this.rotSpeed = (Math.random() - 0.5) * 2.5;
     this.markedForDeletion = false;
+    this.hitFlashTimer = 0;
 
-    this.points = [];
-    const numVerts = Math.floor(Math.random() * 3) + 6;
-    for (let i = 0; i < numVerts; i++) {
-      const angle = (i / numVerts) * Math.PI * 2;
-      const variance = Math.random() * 0.35 + 0.8;
-      this.points.push({
-        x: Math.cos(angle) * this.size * variance,
-        y: Math.sin(angle) * this.size * variance
-      });
-    }
-
-    const rand = Math.random();
-    if (rand > 0.7) {
-      this.color = '#ff0055'; this.glow = '#ff0055';
-    } else if (rand > 0.4) {
-      this.color = '#ffaa00'; this.glow = '#ffaa00';
+    const isDangerStone = mode === 'HARD' || Math.random() < 0.25;
+    if (mode === 'HARD') {
+      this.maxHp = isDangerStone ? 4 : 3;
+    } else if (mode === 'MEDIUM') {
+      this.maxHp = isDangerStone ? 2 : 1;
     } else {
-      this.color = '#aa00ff'; this.glow = '#aa00ff';
+      this.maxHp = 1;
+    }
+    this.hp = this.maxHp;
+
+    if (isDangerStone && dangerStoneImage.complete) {
+      this.spriteImg = dangerStoneImage;
+      this.isDanger = true;
+    } else {
+      const idx = Math.floor(Math.random() * stoneImages.length);
+      this.spriteImg = stoneImages[idx];
+      this.isDanger = false;
     }
   }
 
   update(dt, canvasHeight) {
     this.y += this.speed * dt;
     this.rotation += this.rotSpeed * dt;
+    if (this.hitFlashTimer > 0) this.hitFlashTimer -= dt;
+
     if (this.y > canvasHeight + this.size * 2) {
       this.markedForDeletion = true;
     }
@@ -318,27 +432,130 @@ class Enemy {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rotation);
 
-    ctx.fillStyle = '#0a0514';
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = this.glow;
-
-    ctx.beginPath();
-    ctx.moveTo(this.points[0].x, this.points[0].y);
-    for (let i = 1; i < this.points.length; i++) {
-      ctx.lineTo(this.points[i].x, this.points[i].y);
+    if (this.hitFlashTimer > 0) {
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = '#ffffff';
+    } else if (this.isDanger) {
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = '#ff0055';
+    } else {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#ffaa00';
     }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.beginPath();
-    ctx.moveTo(this.points[0].x * 0.4, this.points[0].y * 0.4);
-    ctx.lineTo(this.points[2].x * 0.5, this.points[2].y * 0.5);
-    ctx.stroke();
+    if (this.spriteImg && this.spriteImg.complete && this.spriteImg.naturalWidth !== 0) {
+      ctx.drawImage(this.spriteImg, -this.size, -this.size, this.size * 2, this.size * 2);
+    } else {
+      ctx.fillStyle = this.isDanger ? '#ff0055' : '#ffaa00';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
+    if (this.maxHp > 1) {
+      ctx.restore();
+      ctx.save();
+      const barW = this.size * 1.4;
+      const barH = 4;
+      const barX = this.x - barW / 2;
+      const barY = this.y - this.size - 8;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.fillRect(barX, barY, barW, barH);
+      ctx.fillStyle = this.isDanger ? '#ff0055' : '#ffaa00';
+      ctx.fillRect(barX, barY, (this.hp / this.maxHp) * barW, barH);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(barX, barY, barW, barH);
+    }
+
+    ctx.restore();
+  }
+}
+
+// Shooter Danger Ship Boss
+class MegaStone {
+  constructor(lvl, canvasWidth) {
+    this.width = 90;
+    this.height = 90;
+    this.x = canvasWidth / 2;
+    this.y = -this.height * 2;
+    this.targetY = 85;
+    this.descendSpeed = 75;
+
+    this.vx = (150 + (lvl - 1) * 3) * (Math.random() > 0.5 ? 1 : -1);
+    this.maxHp = Math.min(120, 50 + Math.floor((lvl - 1) * 1.5));
+    this.hp = this.maxHp;
+    
+    this.lastShootTime = 0;
+    this.shootInterval = Math.max(0.6, 1.25 - (lvl - 1) * 0.008);
+    this.markedForDeletion = false;
+    this.hitFlashTimer = 0;
+  }
+
+  update(dt, timestamp, enemyLasers, canvasHeight, canvasWidth) {
+    if (this.y < this.targetY) {
+      this.y += this.descendSpeed * dt;
+    } else {
+      this.x += this.vx * dt;
+      if (this.x < 55) {
+        this.x = 55;
+        this.vx = Math.abs(this.vx);
+      } else if (this.x > canvasWidth - 55) {
+        this.x = canvasWidth - 55;
+        this.vx = -Math.abs(this.vx);
+      }
+    }
+
+    if (this.hitFlashTimer > 0) {
+      this.hitFlashTimer -= dt;
+    }
+
+    if (this.y >= 50 && timestamp / 1000 - this.lastShootTime >= this.shootInterval) {
+      this.lastShootTime = timestamp / 1000;
+      enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 450));
+      enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -110, 430));
+      enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 110, 430));
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    if (this.hitFlashTimer > 0) {
+      ctx.shadowBlur = 35;
+      ctx.shadowColor = '#00ffff';
+    } else {
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = '#ff0055';
+    }
+
+    if (dangerShipImage.complete && dangerShipImage.naturalWidth !== 0) {
+      ctx.drawImage(dangerShipImage, -this.width / 2, -this.height / 2, this.width, this.height);
+    } else {
+      ctx.fillStyle = '#ff0055';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.width / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    ctx.save();
+    const barW = 80;
+    const barH = 8;
+    const barX = this.x - barW / 2;
+    const barY = this.y - this.height / 2 - 16;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(barX, barY, barW, barH);
+
+    ctx.fillStyle = this.hp < this.maxHp * 0.3 ? '#ff0055' : '#ffaa00';
+    ctx.fillRect(barX, barY, (this.hp / this.maxHp) * barW, barH);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(barX, barY, barW, barH);
     ctx.restore();
   }
 }

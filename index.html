@@ -7,6 +7,11 @@
   
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- Firebase SDK Compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -14,12 +19,16 @@
     <div class="game-container stage-1" id="gameContainer">
       <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-      <!-- Retro CRT Overlay Filters -->
+      <!-- Retro CRT Overlay & Red Danger Flash Filters -->
       <div class="crt-overlay"></div>
       <div class="vignette"></div>
+      <div class="danger-flash-overlay" id="dangerOverlay"></div>
 
       <!-- Level Expansion & Weapon Unlock Banners -->
       <div class="banner-notification" id="bannerNotif">LEVEL 4 REACHED: DEFENSE ZONE EXPANDED!</div>
+
+      <!-- User Profile Badge in HUD -->
+      <div class="user-badge-hud" id="hudUserBadge">Guest Player</div>
 
       <!-- HUD -->
       <div class="hud">
@@ -28,76 +37,81 @@
             <span class="hud-label">SCORE</span>
             <span class="hud-value" id="hudScore">000000</span>
           </div>
+          <div class="hud-box">
+            <span class="hud-label">MODE</span>
+            <span class="mode-badge easy" id="hudModeBadge">EASY</span>
+          </div>
         </div>
+
         <div class="hud-center">
           <div class="hud-box" style="text-align: center;">
             <span class="hud-label">LEVEL</span>
-            <span class="hud-value" id="hudLevel">1</span>
+            <span class="hud-value" id="hudLevel">1 / 100</span>
           </div>
         </div>
+
         <div class="hud-right">
           <div class="hud-box" style="text-align: right;">
-            <span class="hud-label">LIVES</span>
-            <span class="lives-hearts" id="hudLives">♥ ♥ ♥</span>
+            <span class="hud-label">HEALTH</span>
+            <div class="health-kit-container" id="hudLives">
+              <!-- Rendered dynamically with images/helth.png -->
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Weapon Equipped Badge in HUD with gun.png icon preview -->
+      <!-- Weapon Equipped Badge in HUD -->
       <div class="weapon-badge-hud" id="hudWeaponBadge">
-        <img src="images/gun.png" alt="Gun Icon" style="width:18px; height:18px; object-fit:contain;">
-        <span>GUN:</span> <strong id="hudWeaponName">CYAN DUAL</strong>
+        <img id="hudWeaponImg" src="images/char1.webp" alt="Character" style="width:22px; height:22px; object-fit:contain;">
+        <span>HERO:</span> <strong id="hudWeaponName">NORMAL - BLASTER</strong>
       </div>
 
       <!-- HUD Interactive SVG Icon Action Bar -->
       <div class="hud-actions">
-        <!-- Pause Icon Button -->
         <button class="icon-btn js-pause-btn" title="Pause Game (P)">
-          <svg viewBox="0 0 24 24">
-            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-          </svg>
+          <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
         </button>
 
-        <!-- Restart Icon Button -->
         <button class="icon-btn js-restart-btn" title="Restart Game (R)">
-          <svg viewBox="0 0 24 24">
-            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-          </svg>
+          <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
         </button>
 
-        <!-- Sound Toggle Icon Button -->
         <button class="icon-btn js-audio-btn" title="Mute/Unmute Sound (M)">
-          <svg viewBox="0 0 24 24">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-          </svg>
+          <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
         </button>
       </div>
 
-      <!-- START SCREEN -->
+      <!-- START SCREEN & AUTHENTICATION -->
       <div class="screen-overlay" id="startScreen">
         <h1 class="game-title">PIXEL DEFENDER</h1>
-        <p class="subtitle">Defend the galaxy! Destroy incoming asteroids and alien ships. Survive every 3 levels to expand the battlefield and unlock high-tech advance guns!</p>
+        <p class="subtitle">Defend the galaxy! Destroy incoming asteroids and shooter Danger Ships across 100 escalating levels!</p>
 
-        <div class="controls-card">
-          <div class="control-item">
-            <span class="key-badge">←</span> <span class="key-badge">→</span> / <span class="key-badge">A</span> <span class="key-badge">D</span>
-            <span>MOVE SHIP</span>
+        <!-- Auth & Player Login/Register Box -->
+        <div class="auth-box">
+          <div class="auth-tabs">
+            <button type="button" class="auth-tab active" id="tabLoginBtn">LOGIN</button>
+            <button type="button" class="auth-tab" id="tabRegisterBtn">REGISTER</button>
           </div>
-          <div class="control-item">
-            <span class="key-badge">SPACE</span>
-            <span>SHOOT GUN</span>
-          </div>
-          <div class="control-item">
-            <span class="key-badge">P</span> / <span class="key-badge">ESC</span>
-            <span>PAUSE GAME</span>
-          </div>
-          <div class="control-item">
-            <span class="key-badge">1</span> <span class="key-badge">2</span> <span class="key-badge">3</span>
-            <span>SWITCH GUNS</span>
-          </div>
+
+          <!-- Login Form -->
+          <form class="auth-form" id="loginForm">
+            <input type="email" class="auth-input" id="loginEmail" placeholder="Email Address" required>
+            <input type="password" class="auth-input" id="loginPassword" placeholder="Password" required>
+            <button type="submit" class="arcade-btn" style="padding: 8px 20px; font-size:13px;">LOGIN TO PLAY</button>
+          </form>
+
+          <!-- Register Form -->
+          <form class="auth-form hidden" id="registerForm">
+            <input type="text" class="auth-input" id="regName" placeholder="Full Name" required>
+            <input type="email" class="auth-input" id="regEmail" placeholder="Email Address" required>
+            <input type="password" class="auth-input" id="regPassword" placeholder="Password" required>
+            <button type="submit" class="arcade-btn" style="padding: 8px 20px; font-size:13px;">CREATE ACCOUNT</button>
+          </form>
+
+          <button type="button" class="guest-btn" id="guestPlayBtn">PLAY AS GUEST</button>
         </div>
 
-        <button class="arcade-btn" id="startBtn">START GAME</button>
+        <button class="arcade-btn" id="startBtn" style="margin-top:14px;">START GAME</button>
         <p class="action-prompt">PRESS SPACE TO START</p>
       </div>
 
@@ -106,42 +120,62 @@
         <h1 class="game-title" style="color: #ffaa00; text-shadow: 0 0 20px #ffaa00;">GAME PAUSED</h1>
         <p class="subtitle">Tactical Pause Menu</p>
 
+        <!-- Character Selection Panel -->
         <div class="weapon-selector-panel">
           <div class="weapon-card active" id="wCard1" onclick="window.selectWeapon(1)">
-            <div class="weapon-name">1. CYAN DUAL</div>
+            <img src="images/char1.webp" alt="Normal Character">
+            <div class="weapon-name">1. NORMAL BLASTER</div>
             <div class="weapon-desc">Standard Laser</div>
           </div>
           <div class="weapon-card locked" id="wCard2" onclick="window.selectWeapon(2)">
-            <img src="images/gun.png" alt="Phoenix Gun" style="width:28px; height:28px; margin-bottom:4px; object-fit:contain;">
+            <img src="images/char2.webp" alt="Medium Character">
             <div class="weapon-name">2. PHOENIX SPREAD</div>
-            <div class="weapon-desc">Unlock at Lvl 3</div>
+            <div class="weapon-desc">Auto at Lvl 5</div>
           </div>
           <div class="weapon-card locked" id="wCard3" onclick="window.selectWeapon(3)">
-            <img src="images/gun.png" alt="Hyper Gun" style="width:28px; height:28px; margin-bottom:4px; filter:hue-rotate(90deg); object-fit:contain;">
+            <img src="images/char3.webp" alt="Advance Character">
             <div class="weapon-name">3. HYPER BEAM</div>
-            <div class="weapon-desc">Unlock at Lvl 6</div>
+            <div class="weapon-desc">Auto at Lvl 10</div>
           </div>
         </div>
 
         <div class="btn-group">
-          <!-- Resume Button -->
           <button class="arcade-btn" id="resumeBtn">RESUME GAME</button>
-
-          <!-- Restart Icon Button -->
-          <button class="icon-btn js-restart-btn" title="Restart Game (R)" style="width: 48px; height: 48px;">
-            <svg viewBox="0 0 24 24" style="width: 26px; height: 26px;">
-              <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-            </svg>
+          <button class="arcade-btn quit-btn js-quit-btn">QUIT GAME</button>
+          <button class="icon-btn js-restart-btn" title="Restart Game (R)" style="width: 44px; height: 44px;">
+            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
           </button>
-
-          <!-- Audio Icon Button -->
-          <button class="icon-btn js-audio-btn" title="Mute/Unmute Sound (M)" style="width: 48px; height: 48px;">
-            <svg viewBox="0 0 24 24" style="width: 26px; height: 26px;">
-              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-            </svg>
+          <button class="icon-btn js-audio-btn" title="Mute/Unmute Sound (M)" style="width: 44px; height: 44px;">
+            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
           </button>
         </div>
         <p class="action-prompt">PRESS P OR ESC TO RESUME</p>
+      </div>
+
+      <!-- VICTORY SCREEN (Level 100 Completed!) -->
+      <div class="screen-overlay hidden" id="victoryScreen">
+        <h1 class="game-title" style="color: #00ffaa; text-shadow: 0 0 25px #00ffaa;">VICTORY!</h1>
+        <p class="subtitle" style="color:#00ffaa;">CONGRATULATIONS! You successfully survived all 100 levels and saved the galaxy!</p>
+
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-label">FINAL SCORE</div>
+            <div class="stat-value" id="victoryScore">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">LEVELS COMPLETED</div>
+            <div class="stat-value">100 / 100</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">HIGH SCORE</div>
+            <div class="stat-value" id="victoryHighScore">0</div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="arcade-btn js-restart-btn" style="background:linear-gradient(135deg,#00ffaa,#0088ff);">PLAY AGAIN</button>
+          <button class="arcade-btn quit-btn js-quit-btn">QUIT GAME</button>
+        </div>
       </div>
 
       <!-- GAME OVER SCREEN -->
@@ -156,7 +190,7 @@
           </div>
           <div class="stat-card">
             <div class="stat-label">LEVEL REACHED</div>
-            <div class="stat-value" id="finalLevel">1</div>
+            <div class="stat-value" id="finalLevel">1 / 100</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">HIGH SCORE</div>
@@ -164,7 +198,21 @@
           </div>
         </div>
 
-        <button class="arcade-btn" id="restartBtn">RESTART GAME</button>
+        <!-- Guest Conversion Form -->
+        <div class="auth-box hidden" id="guestConvertBox" style="margin-bottom:15px; border-color:#00ffaa;">
+          <h3 style="color:#00ffaa; font-size:13px; margin-bottom:8px;">SAVE YOUR SCORE & REGISTER ACCOUNT</h3>
+          <form class="auth-form" id="guestRegForm">
+            <input type="text" class="auth-input" id="guestRegName" placeholder="Full Name" required>
+            <input type="email" class="auth-input" id="guestRegEmail" placeholder="Email Address" required>
+            <input type="password" class="auth-input" id="guestRegPassword" placeholder="Create Password" required>
+            <button type="submit" class="arcade-btn" style="padding: 6px 16px; font-size:12px; background:linear-gradient(135deg,#00ffaa,#0088ff);">SAVE SCORE & REGISTER</button>
+          </form>
+        </div>
+
+        <div class="btn-group">
+          <button class="arcade-btn" id="restartBtn">RESTART GAME</button>
+          <button class="arcade-btn quit-btn js-quit-btn">QUIT GAME</button>
+        </div>
         <p class="action-prompt">PRESS SPACE TO PLAY AGAIN</p>
       </div>
 
@@ -172,8 +220,80 @@
   </main>
 
   <!-- JavaScript Modules -->
+  <script src="js/auth.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/entities.js"></script>
   <script src="js/game.js"></script>
+
+  <!-- Explicit Auth Tab Handlers -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabLoginBtn = document.getElementById('tabLoginBtn');
+      const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const guestPlayBtn = document.getElementById('guestPlayBtn');
+
+      tabLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        tabLoginBtn.classList.add('active');
+        tabRegisterBtn.classList.remove('active');
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+      });
+
+      tabRegisterBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        tabRegisterBtn.classList.add('active');
+        tabLoginBtn.classList.remove('active');
+        registerForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+      });
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPassword').value;
+        if (window.authManager) {
+          const res = await authManager.login(email, pass);
+          if (res.success) alert(`Welcome back, ${res.name}!`);
+          else alert(res.message || 'Login failed');
+        }
+      });
+
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const pass = document.getElementById('regPassword').value;
+        if (window.authManager) {
+          const res = await authManager.register(name, email, pass);
+          if (res.success) alert(`Account created! Welcome, ${res.name}!`);
+        }
+      });
+
+      guestPlayBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.authManager) authManager.playAsGuest();
+      });
+
+      const guestRegForm = document.getElementById('guestRegForm');
+      if (guestRegForm) {
+        guestRegForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const name = document.getElementById('guestRegName').value;
+          const email = document.getElementById('guestRegEmail').value;
+          const pass = document.getElementById('guestRegPassword').value;
+          if (window.authManager) {
+            const res = await authManager.register(name, email, pass);
+            if (res.success) {
+              alert(`Account created & Score saved! Welcome ${res.name}!`);
+              document.getElementById('guestConvertBox').classList.add('hidden');
+            }
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
