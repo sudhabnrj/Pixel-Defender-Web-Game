@@ -4,361 +4,79 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pixel Defender — Retro Arcade Shooter</title>
-  <style>
-    /* ==========================================================================
-       RESET & BASE STYLES
-       ========================================================================== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      background-color: #05050d;
-      color: #fff;
-      font-family: 'Courier New', Courier, monospace, sans-serif;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    /* ==========================================================================
-       GAME WRAPPER & CONTAINER
-       ========================================================================== */
-    .game-wrapper {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: radial-gradient(circle at center, #0e0e24 0%, #030308 100%);
-    }
-
-    .game-container {
-      position: relative;
-      width: 800px;
-      height: 600px;
-      max-width: 100vw;
-      max-height: 100vh;
-      border: 3px solid #00f0ff;
-      border-radius: 8px;
-      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4), inset 0 0 15px rgba(0, 240, 255, 0.2);
-      overflow: hidden;
-      background: #000;
-    }
-
-    /* Canvas styling */
-    #gameCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: #03030a;
-    }
-
-    /* CRT scanline overlay for retro feel */
-    .crt-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        rgba(18, 16, 16, 0) 50%, 
-        rgba(0, 0, 0, 0.25) 50%
-      );
-      background-size: 100% 4px;
-      pointer-events: none;
-      z-index: 10;
-      opacity: 0.7;
-    }
-
-    /* Vignette effect */
-    .vignette {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8);
-      pointer-events: none;
-      z-index: 11;
-    }
-
-    /* ==========================================================================
-       HUD OVERLAY
-       ========================================================================== */
-    .hud {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 12;
-      font-weight: bold;
-      font-size: 16px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #00f0ff;
-      text-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
-      pointer-events: none;
-    }
-
-    .hud-box {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .hud-label {
-      font-size: 11px;
-      color: #88aaff;
-      letter-spacing: 1px;
-    }
-
-    .hud-value {
-      font-size: 20px;
-      color: #ffffff;
-      text-shadow: 0 0 10px #00f0ff;
-    }
-
-    .lives-hearts {
-      color: #ff0055;
-      font-size: 24px;
-      text-shadow: 0 0 12px #ff0055;
-      letter-spacing: 6px;
-    }
-
-    .audio-btn {
-      position: absolute;
-      bottom: 12px;
-      right: 15px;
-      z-index: 25;
-      background: rgba(0, 240, 255, 0.1);
-      border: 1px solid #00f0ff;
-      color: #00f0ff;
-      padding: 6px 12px;
-      font-family: inherit;
-      font-size: 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      letter-spacing: 1px;
-      transition: all 0.2s ease;
-      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
-    }
-
-    .audio-btn:hover {
-      background: rgba(0, 240, 255, 0.3);
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
-      color: #fff;
-    }
-
-    /* ==========================================================================
-       SCREENS & OVERLAYS (Start / Game Over)
-       ========================================================================== */
-    .screen-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(4, 4, 15, 0.85);
-      backdrop-filter: blur(4px);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 20;
-      padding: 30px;
-      text-align: center;
-      opacity: 1;
-      transition: opacity 0.3s ease;
-    }
-
-    .screen-overlay.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .game-title {
-      font-size: 42px;
-      color: #00f0ff;
-      text-shadow: 0 0 20px #00f0ff, 0 0 40px #00aaff;
-      letter-spacing: 6px;
-      margin-bottom: 12px;
-      animation: pulseTitle 2s infinite alternate ease-in-out;
-    }
-
-    @keyframes pulseTitle {
-      0% { text-shadow: 0 0 15px #00f0ff, 0 0 30px #0088ff; transform: scale(1); }
-      100% { text-shadow: 0 0 25px #00f0ff, 0 0 50px #ff00aa; transform: scale(1.02); }
-    }
-
-    .subtitle {
-      font-size: 15px;
-      color: #a0c0ff;
-      margin-bottom: 25px;
-      letter-spacing: 2px;
-      max-width: 500px;
-      line-height: 1.5;
-    }
-
-    .controls-card {
-      background: rgba(0, 240, 255, 0.05);
-      border: 1px solid rgba(0, 240, 255, 0.3);
-      border-radius: 8px;
-      padding: 16px 24px;
-      margin-bottom: 30px;
-      box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.1);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px 24px;
-      text-align: left;
-    }
-
-    .control-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      color: #d0e0ff;
-    }
-
-    .key-badge {
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid #00f0ff;
-      border-radius: 4px;
-      padding: 4px 8px;
-      color: #00f0ff;
-      font-weight: bold;
-      font-size: 12px;
-      box-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
-    }
-
-    .action-prompt {
-      font-size: 18px;
-      color: #ff00aa;
-      text-shadow: 0 0 12px #ff00aa;
-      letter-spacing: 3px;
-      margin-top: 10px;
-      animation: blinkText 1.2s infinite;
-    }
-
-    @keyframes blinkText {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    .arcade-btn {
-      background: linear-gradient(135deg, #ff00aa, #7928ca);
-      color: #fff;
-      border: 2px solid #ff77d4;
-      padding: 14px 36px;
-      font-size: 18px;
-      font-family: inherit;
-      font-weight: bold;
-      letter-spacing: 2px;
-      border-radius: 30px;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(255, 0, 170, 0.6);
-      transition: all 0.2s ease;
-      margin-top: 15px;
-    }
-
-    .arcade-btn:hover {
-      transform: scale(1.06);
-      box-shadow: 0 0 30px rgba(255, 0, 170, 0.9), 0 0 10px #00f0ff;
-    }
-
-    .arcade-btn:active {
-      transform: scale(0.98);
-    }
-
-    .game-over-title {
-      font-size: 46px;
-      color: #ff0055;
-      text-shadow: 0 0 25px #ff0055, 0 0 50px #ff0000;
-      letter-spacing: 6px;
-      margin-bottom: 20px;
-    }
-
-    .stats-container {
-      display: flex;
-      gap: 30px;
-      margin-bottom: 25px;
-    }
-
-    .stat-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 0, 85, 0.4);
-      padding: 15px 25px;
-      border-radius: 8px;
-      min-width: 140px;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: #ff99bb;
-      margin-bottom: 6px;
-    }
-
-    .stat-value {
-      font-size: 24px;
-      color: #ffffff;
-      font-weight: bold;
-      text-shadow: 0 0 10px #ff0055;
-    }
-
-    .new-high-score {
-      color: #00ffaa;
-      font-size: 13px;
-      margin-top: 4px;
-      text-shadow: 0 0 8px #00ffaa;
-    }
-  </style>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
   <main class="game-wrapper">
-    <div class="game-container" id="gameContainer">
+    <div class="game-container stage-1" id="gameContainer">
       <canvas id="gameCanvas" width="800" height="600"></canvas>
 
       <!-- Retro CRT Overlay Filters -->
       <div class="crt-overlay"></div>
       <div class="vignette"></div>
 
+      <!-- Level Expansion & Weapon Unlock Banners -->
+      <div class="banner-notification" id="bannerNotif">LEVEL 4 REACHED: DEFENSE ZONE EXPANDED!</div>
+
       <!-- HUD -->
       <div class="hud">
-        <div class="hud-box">
-          <span class="hud-label">SCORE</span>
-          <span class="hud-value" id="hudScore">000000</span>
+        <div class="hud-left">
+          <div class="hud-box">
+            <span class="hud-label">SCORE</span>
+            <span class="hud-value" id="hudScore">000000</span>
+          </div>
         </div>
-        <div class="hud-box" style="text-align: center;">
-          <span class="hud-label">LEVEL</span>
-          <span class="hud-value" id="hudLevel">1</span>
+        <div class="hud-center">
+          <div class="hud-box" style="text-align: center;">
+            <span class="hud-label">LEVEL</span>
+            <span class="hud-value" id="hudLevel">1</span>
+          </div>
         </div>
-        <div class="hud-box" style="text-align: right;">
-          <span class="hud-label">LIVES</span>
-          <span class="lives-hearts" id="hudLives">♥ ♥ ♥</span>
+        <div class="hud-right">
+          <div class="hud-box" style="text-align: right;">
+            <span class="hud-label">LIVES</span>
+            <span class="lives-hearts" id="hudLives">♥ ♥ ♥</span>
+          </div>
         </div>
       </div>
 
-      <!-- Mute/Unmute Audio Button -->
-      <button class="audio-btn" id="audioToggle">SOUND: ON</button>
+      <!-- Weapon Equipped Badge in HUD -->
+      <div class="weapon-badge-hud" id="hudWeaponBadge">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span>GUN:</span> <strong id="hudWeaponName">CYAN DUAL</strong>
+      </div>
+
+      <!-- HUD Interactive SVG Icon Action Bar -->
+      <div class="hud-actions">
+        <!-- Pause Icon Button -->
+        <button class="icon-btn js-pause-btn" title="Pause Game (P)">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+          </svg>
+        </button>
+
+        <!-- Restart Icon Button -->
+        <button class="icon-btn js-restart-btn" title="Restart Game (R)">
+          <svg viewBox="0 0 24 24">
+            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+          </svg>
+        </button>
+
+        <!-- Sound Toggle Icon Button -->
+        <button class="icon-btn js-audio-btn" title="Mute/Unmute Sound (M)">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </button>
+      </div>
 
       <!-- START SCREEN -->
       <div class="screen-overlay" id="startScreen">
         <h1 class="game-title">PIXEL DEFENDER</h1>
-        <p class="subtitle">Defend the galaxy! Destroy incoming asteroids and alien ships before they breach the defense perimeter.</p>
+        <p class="subtitle">Defend the galaxy! Destroy incoming asteroids and alien ships. Survive every 3 levels to expand the battlefield and unlock high-tech advance guns!</p>
 
         <div class="controls-card">
           <div class="control-item">
@@ -367,7 +85,15 @@
           </div>
           <div class="control-item">
             <span class="key-badge">SPACE</span>
-            <span>SHOOT LASERS</span>
+            <span>SHOOT GUN</span>
+          </div>
+          <div class="control-item">
+            <span class="key-badge">P</span> / <span class="key-badge">ESC</span>
+            <span>PAUSE GAME</span>
+          </div>
+          <div class="control-item">
+            <span class="key-badge">1</span> <span class="key-badge">2</span> <span class="key-badge">3</span>
+            <span>SWITCH GUNS</span>
           </div>
         </div>
 
@@ -375,15 +101,56 @@
         <p class="action-prompt">PRESS SPACE TO START</p>
       </div>
 
+      <!-- PAUSE SCREEN -->
+      <div class="screen-overlay hidden" id="pauseScreen">
+        <h1 class="game-title" style="color: #ffaa00; text-shadow: 0 0 20px #ffaa00;">GAME PAUSED</h1>
+        <p class="subtitle">Tactical Pause Menu</p>
+
+        <div class="weapon-selector-panel">
+          <div class="weapon-card active" id="wCard1" onclick="window.selectWeapon(1)">
+            <div class="weapon-name">1. CYAN DUAL</div>
+            <div class="weapon-desc">Standard Laser</div>
+          </div>
+          <div class="weapon-card locked" id="wCard2" onclick="window.selectWeapon(2)">
+            <div class="weapon-name">2. PHOENIX SPREAD</div>
+            <div class="weapon-desc">Unlock at Lvl 3</div>
+          </div>
+          <div class="weapon-card locked" id="wCard3" onclick="window.selectWeapon(3)">
+            <div class="weapon-name">3. HYPER BEAM</div>
+            <div class="weapon-desc">Unlock at Lvl 6</div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <!-- Resume Button -->
+          <button class="arcade-btn" id="resumeBtn">RESUME GAME</button>
+
+          <!-- Restart Icon Button -->
+          <button class="icon-btn js-restart-btn" title="Restart Game (R)" style="width: 48px; height: 48px;">
+            <svg viewBox="0 0 24 24" style="width: 26px; height: 26px;">
+              <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+            </svg>
+          </button>
+
+          <!-- Audio Icon Button -->
+          <button class="icon-btn js-audio-btn" title="Mute/Unmute Sound (M)" style="width: 48px; height: 48px;">
+            <svg viewBox="0 0 24 24" style="width: 26px; height: 26px;">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+          </button>
+        </div>
+        <p class="action-prompt">PRESS P OR ESC TO RESUME</p>
+      </div>
+
       <!-- GAME OVER SCREEN -->
       <div class="screen-overlay hidden" id="gameOverScreen">
-        <h1 class="game-over-title">GAME OVER</h1>
+        <h1 class="game-title" style="color: #ff0055; text-shadow: 0 0 25px #ff0055;">GAME OVER</h1>
 
         <div class="stats-container">
           <div class="stat-card">
             <div class="stat-label">FINAL SCORE</div>
             <div class="stat-value" id="finalScore">0</div>
-            <div class="new-high-score hidden" id="newHighScoreTag">NEW HIGH SCORE!</div>
+            <div style="color:#00ffaa; font-size:11px; margin-top:4px;" class="hidden" id="newHighScoreTag">NEW HIGH SCORE!</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">LEVEL REACHED</div>
@@ -402,823 +169,9 @@
     </div>
   </main>
 
-  <script>
-    /* ==========================================================================
-       PIXEL DEFENDER — FULL GAME LOGIC
-       ========================================================================== */
-
-    (function() {
-      'use strict';
-
-      // ------------------------------------------------------------------------
-      // 1. CONFIGURATION & CONSTANTS
-      // ------------------------------------------------------------------------
-      const CANVAS_WIDTH = 800;
-      const CANVAS_HEIGHT = 600;
-      const PLAYER_SPEED = 450; // Pixels per sec
-      const LASER_SPEED = 700;  // Pixels per sec
-      const SHOOT_COOLDOWN = 140; // ms between laser shots
-      const INITIAL_LIVES = 3;
-      const INVULNERABILITY_TIME = 1.5; // seconds after getting hit
-
-      // ------------------------------------------------------------------------
-      // 2. CANVAS & CONTEXT SETUP
-      // ------------------------------------------------------------------------
-      const canvas = document.getElementById('gameCanvas');
-      const ctx = canvas.getContext('2d');
-      const gameContainer = document.getElementById('gameContainer');
-
-      // DOM Elements
-      const hudScore = document.getElementById('hudScore');
-      const hudLevel = document.getElementById('hudLevel');
-      const hudLives = document.getElementById('hudLives');
-      const startScreen = document.getElementById('startScreen');
-      const gameOverScreen = document.getElementById('gameOverScreen');
-      const startBtn = document.getElementById('startBtn');
-      const restartBtn = document.getElementById('restartBtn');
-      const finalScoreEl = document.getElementById('finalScore');
-      const finalLevelEl = document.getElementById('finalLevel');
-      const highScoreEl = document.getElementById('highScore');
-      const newHighScoreTag = document.getElementById('newHighScoreTag');
-      const audioToggle = document.getElementById('audioToggle');
-
-      // ------------------------------------------------------------------------
-      // 3. SOUND SYNTHESIZER (Web Audio API)
-      // ------------------------------------------------------------------------
-      class SoundSystem {
-        constructor() {
-          this.ctx = null;
-          this.muted = false;
-        }
-
-        init() {
-          if (!this.ctx) {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (AudioCtx) {
-              this.ctx = new AudioCtx();
-            }
-          }
-          if (this.ctx && this.ctx.state === 'suspended') {
-            this.ctx.resume();
-          }
-        }
-
-        toggleMute() {
-          this.muted = !this.muted;
-          return this.muted;
-        }
-
-        playShoot() {
-          if (this.muted) return;
-          this.init();
-          if (!this.ctx) return;
-
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.12);
-
-          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
-
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-
-          osc.start();
-          osc.stop(this.ctx.currentTime + 0.12);
-        }
-
-        playExplosion(isLarge = false) {
-          if (this.muted) return;
-          this.init();
-          if (!this.ctx) return;
-
-          const duration = isLarge ? 0.4 : 0.25;
-          const bufferSize = this.ctx.sampleRate * duration;
-          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-          const data = buffer.getChannelData(0);
-
-          for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-          }
-
-          const noise = this.ctx.createBufferSource();
-          noise.buffer = buffer;
-
-          const filter = this.ctx.createBiquadFilter();
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(isLarge ? 400 : 800, this.ctx.currentTime);
-          filter.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + duration);
-
-          const gain = this.ctx.createGain();
-          gain.gain.setValueAtTime(isLarge ? 0.35 : 0.2, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-
-          noise.connect(filter);
-          filter.connect(gain);
-          gain.connect(this.ctx.destination);
-
-          noise.start();
-        }
-
-        playHit() {
-          if (this.muted) return;
-          this.init();
-          if (!this.ctx) return;
-
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.2);
-
-          gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
-
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-
-          osc.start();
-          osc.stop(this.ctx.currentTime + 0.2);
-        }
-
-        playLevelUp() {
-          if (this.muted) return;
-          this.init();
-          if (!this.ctx) return;
-
-          const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
-          notes.forEach((freq, idx) => {
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            const startTime = this.ctx.currentTime + idx * 0.08;
-
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, startTime);
-
-            gain.gain.setValueAtTime(0.15, startTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.15);
-
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-
-            osc.start(startTime);
-            osc.stop(startTime + 0.15);
-          });
-        }
-
-        playGameOver() {
-          if (this.muted) return;
-          this.init();
-          if (!this.ctx) return;
-
-          const notes = [300, 250, 200, 140];
-          notes.forEach((freq, idx) => {
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            const startTime = this.ctx.currentTime + idx * 0.12;
-
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(freq, startTime);
-
-            gain.gain.setValueAtTime(0.2, startTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.18);
-
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-
-            osc.start(startTime);
-            osc.stop(startTime + 0.18);
-          });
-        }
-      }
-
-      const sounds = new SoundSystem();
-
-      // ------------------------------------------------------------------------
-      // 4. GAME STATE MANAGEMENT
-      // ------------------------------------------------------------------------
-      const STATES = {
-        START: 'START',
-        PLAYING: 'PLAYING',
-        GAME_OVER: 'GAME_OVER'
-      };
-
-      let gameState = STATES.START;
-      let score = 0;
-      let level = 1;
-      let lives = INITIAL_LIVES;
-      let highScore = parseInt(localStorage.getItem('pixel_defender_highscore') || '0', 10);
-      let lastTime = 0;
-      let spawnTimer = 0;
-      let screenShake = 0;
-
-      // ------------------------------------------------------------------------
-      // 5. INPUT HANDLING
-      // ------------------------------------------------------------------------
-      const keys = {
-        left: false,
-        right: false,
-        shoot: false
-      };
-
-      window.addEventListener('keydown', (e) => {
-        // Prevent scrolling with Space & Arrow Keys during active game or start screen
-        if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD'].includes(e.code)) {
-          e.preventDefault();
-        }
-
-        if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
-        if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
-        if (e.code === 'Space') {
-          keys.shoot = true;
-          if (gameState === STATES.START) {
-            startGame();
-          } else if (gameState === STATES.GAME_OVER) {
-            startGame();
-          }
-        }
-      });
-
-      window.addEventListener('keyup', (e) => {
-        if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
-        if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
-        if (e.code === 'Space') keys.shoot = false;
-      });
-
-      startBtn.addEventListener('click', () => {
-        sounds.init();
-        startGame();
-      });
-
-      restartBtn.addEventListener('click', () => {
-        sounds.init();
-        startGame();
-      });
-
-      audioToggle.addEventListener('click', () => {
-        sounds.init();
-        const isMuted = sounds.toggleMute();
-        audioToggle.textContent = isMuted ? 'SOUND: OFF' : 'SOUND: ON';
-        audioToggle.style.borderColor = isMuted ? '#ff0055' : '#00f0ff';
-        audioToggle.style.color = isMuted ? '#ff0055' : '#00f0ff';
-      });
-
-      // ------------------------------------------------------------------------
-      // 6. GAME ENTITIES (Player, Laser, Enemy, Particle, Star)
-      // ------------------------------------------------------------------------
-
-      // Starfield Background
-      class Star {
-        constructor() {
-          this.reset(true);
-        }
-
-        reset(randomY = false) {
-          this.x = Math.random() * CANVAS_WIDTH;
-          this.y = randomY ? Math.random() * CANVAS_HEIGHT : 0;
-          this.size = Math.random() * 2 + 0.5;
-          this.speed = Math.random() * 60 + 20;
-          this.alpha = Math.random() * 0.7 + 0.3;
-          this.color = Math.random() > 0.3 ? '#ffffff' : (Math.random() > 0.5 ? '#00f0ff' : '#ff00aa');
-        }
-
-        update(dt) {
-          this.y += this.speed * dt;
-          if (this.y > CANVAS_HEIGHT) {
-            this.reset(false);
-          }
-        }
-
-        draw() {
-          ctx.save();
-          ctx.globalAlpha = this.alpha;
-          ctx.fillStyle = this.color;
-          ctx.fillRect(this.x, this.y, this.size, this.size);
-          ctx.restore();
-        }
-      }
-
-      // Player Spaceship
-      class Player {
-        constructor() {
-          this.width = 44;
-          this.height = 36;
-          this.x = CANVAS_WIDTH / 2 - this.width / 2;
-          this.y = CANVAS_HEIGHT - 65;
-          this.lastShotTime = 0;
-          this.invulnerableTimer = 0;
-        }
-
-        reset() {
-          this.x = CANVAS_WIDTH / 2 - this.width / 2;
-          this.y = CANVAS_HEIGHT - 65;
-          this.lastShotTime = 0;
-          this.invulnerableTimer = 0;
-        }
-
-        update(dt, currentTime) {
-          // Movement
-          if (keys.left) {
-            this.x -= PLAYER_SPEED * dt;
-          }
-          if (keys.right) {
-            this.x += PLAYER_SPEED * dt;
-          }
-
-          // Canvas bounds check
-          if (this.x < 10) this.x = 10;
-          if (this.x > CANVAS_WIDTH - this.width - 10) {
-            this.x = CANVAS_WIDTH - this.width - 10;
-          }
-
-          // Invulnerability timer update
-          if (this.invulnerableTimer > 0) {
-            this.invulnerableTimer -= dt;
-          }
-
-          // Shooting
-          if (keys.shoot && currentTime - this.lastShotTime >= SHOOT_COOLDOWN) {
-            this.shoot(currentTime);
-          }
-        }
-
-        shoot(currentTime) {
-          this.lastShotTime = currentTime;
-          // Dual wing cannons for cool retro feel
-          lasers.push(new Laser(this.x + 8, this.y));
-          lasers.push(new Laser(this.x + this.width - 8, this.y));
-          sounds.playShoot();
-
-          // Add thruster recoil particles
-          for (let i = 0; i < 3; i++) {
-            particles.push(new Particle(
-              this.x + this.width / 2, 
-              this.y + this.height, 
-              (Math.random() - 0.5) * 40, 
-              Math.random() * 80 + 100, 
-              '#00f0ff', 
-              Math.random() * 3 + 2, 
-              0.2
-            ));
-          }
-        }
-
-        draw() {
-          // Blink when invulnerable
-          if (this.invulnerableTimer > 0 && Math.floor(Date.now() / 80) % 2 === 0) {
-            return;
-          }
-
-          ctx.save();
-          ctx.translate(this.x, this.y);
-
-          // Ship Thruster Glow
-          const flameHeight = Math.random() * 10 + 12;
-          ctx.fillStyle = '#00f0ff';
-          ctx.shadowBlur = 15;
-          ctx.shadowColor = '#00f0ff';
-          ctx.beginPath();
-          ctx.moveTo(this.width / 2 - 6, this.height - 4);
-          ctx.lineTo(this.width / 2, this.height - 4 + flameHeight);
-          ctx.lineTo(this.width / 2 + 6, this.height - 4);
-          ctx.closePath();
-          ctx.fill();
-
-          // Ship Body (Neon Vector Cyan spaceship)
-          ctx.fillStyle = '#0a0e28';
-          ctx.strokeStyle = '#00f0ff';
-          ctx.lineWidth = 2.5;
-          ctx.shadowBlur = 12;
-          ctx.shadowColor = '#00f0ff';
-
-          ctx.beginPath();
-          // Nose tip
-          ctx.moveTo(this.width / 2, 0);
-          // Right wing tip
-          ctx.lineTo(this.width, this.height - 8);
-          // Right bottom indent
-          ctx.lineTo(this.width - 10, this.height);
-          // Center bottom back
-          ctx.lineTo(this.width / 2, this.height - 4);
-          // Left bottom indent
-          ctx.lineTo(10, this.height);
-          // Left wing tip
-          ctx.lineTo(0, this.height - 8);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          // Cockpit Glass
-          ctx.fillStyle = '#ff00aa';
-          ctx.shadowBlur = 8;
-          ctx.shadowColor = '#ff00aa';
-          ctx.beginPath();
-          ctx.moveTo(this.width / 2, 8);
-          ctx.lineTo(this.width / 2 + 5, 20);
-          ctx.lineTo(this.width / 2 - 5, 20);
-          ctx.closePath();
-          ctx.fill();
-
-          ctx.restore();
-        }
-      }
-
-      // Laser Bolt
-      class Laser {
-        constructor(x, y) {
-          this.x = x;
-          this.y = y;
-          this.width = 4;
-          this.height = 16;
-          this.markedForDeletion = false;
-        }
-
-        update(dt) {
-          this.y -= LASER_SPEED * dt;
-          if (this.y < -this.height) {
-            this.markedForDeletion = true;
-          }
-        }
-
-        draw() {
-          ctx.save();
-          ctx.fillStyle = '#00f0ff';
-          ctx.shadowBlur = 12;
-          ctx.shadowColor = '#00f0ff';
-          ctx.fillRect(this.x - this.width / 2, this.y, this.width, this.height);
-
-          // Inner white core
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(this.x - 1, this.y + 2, 2, this.height - 4);
-          ctx.restore();
-        }
-      }
-
-      // Enemies / Asteroids
-      class Enemy {
-        constructor(level) {
-          this.size = Math.random() * 24 + 20; // Radius
-          this.x = Math.random() * (CANVAS_WIDTH - this.size * 2) + this.size;
-          this.y = -this.size * 2;
-          
-          // Difficulty scaling
-          const baseSpeed = Math.random() * 80 + 90;
-          const speedMultiplier = 1 + (level - 1) * 0.15;
-          this.speed = baseSpeed * speedMultiplier;
-          
-          this.rotation = Math.random() * Math.PI * 2;
-          this.rotSpeed = (Math.random() - 0.5) * 2.5;
-          this.markedForDeletion = false;
-
-          // Generate irregular asteroid polygon vertices
-          this.points = [];
-          const numVerts = Math.floor(Math.random() * 3) + 6; // 6 to 8 vertices
-          for (let i = 0; i < numVerts; i++) {
-            const angle = (i / numVerts) * Math.PI * 2;
-            const variance = Math.random() * 0.35 + 0.8;
-            this.points.push({
-              x: Math.cos(angle) * this.size * variance,
-              y: Math.sin(angle) * this.size * variance
-            });
-          }
-
-          // Enemy Type/Color Theme
-          const randType = Math.random();
-          if (randType > 0.7) {
-            this.color = '#ff0055'; // Neon Red Asteroid
-            this.glow = '#ff0055';
-          } else if (randType > 0.4) {
-            this.color = '#ff9900'; // Orange Heavy Asteroid
-            this.glow = '#ff9900';
-          } else {
-            this.color = '#aa00ff'; // Purple Alien Fragment
-            this.glow = '#aa00ff';
-          }
-        }
-
-        update(dt) {
-          this.y += this.speed * dt;
-          this.rotation += this.rotSpeed * dt;
-
-          if (this.y > CANVAS_HEIGHT + this.size * 2) {
-            this.markedForDeletion = true;
-          }
-        }
-
-        draw() {
-          ctx.save();
-          ctx.translate(this.x, this.y);
-          ctx.rotate(this.rotation);
-
-          ctx.fillStyle = '#0a0514';
-          ctx.strokeStyle = this.color;
-          ctx.lineWidth = 2;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = this.glow;
-
-          ctx.beginPath();
-          ctx.moveTo(this.points[0].x, this.points[0].y);
-          for (let i = 1; i < this.points.length; i++) {
-            ctx.lineTo(this.points[i].x, this.points[i].y);
-          }
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          // Internal crater lines for extra detail
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-          ctx.beginPath();
-          ctx.moveTo(this.points[0].x * 0.4, this.points[0].y * 0.4);
-          ctx.lineTo(this.points[2].x * 0.5, this.points[2].y * 0.5);
-          ctx.stroke();
-
-          ctx.restore();
-        }
-      }
-
-      // Explosion Debris Particle
-      class Particle {
-        constructor(x, y, vx, vy, color, size, life) {
-          this.x = x;
-          this.y = y;
-          this.vx = vx;
-          this.vy = vy;
-          this.color = color;
-          this.size = size;
-          this.maxLife = life;
-          this.life = life;
-          this.markedForDeletion = false;
-        }
-
-        update(dt) {
-          this.x += this.vx * dt;
-          this.y += this.vy * dt;
-          this.life -= dt;
-
-          if (this.life <= 0) {
-            this.markedForDeletion = true;
-          }
-        }
-
-        draw() {
-          ctx.save();
-          const alpha = Math.max(0, this.life / this.maxLife);
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = this.color;
-          ctx.shadowBlur = 8;
-          ctx.shadowColor = this.color;
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-      }
-
-      // ------------------------------------------------------------------------
-      // 7. GLOBAL GAME ARRAYS & INSTANCES
-      // ------------------------------------------------------------------------
-      const stars = Array.from({ length: 70 }, () => new Star());
-      const player = new Player();
-      let lasers = [];
-      let enemies = [];
-      let particles = [];
-
-      // Create Particle Explosion Cluster
-      function createExplosion(x, y, color, count = 20, isLarge = false) {
-        sounds.playExplosion(isLarge);
-        for (let i = 0; i < count; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = Math.random() * (isLarge ? 280 : 180) + 30;
-          const vx = Math.cos(angle) * speed;
-          const vy = Math.sin(angle) * speed;
-          const pColor = Math.random() > 0.4 ? color : (Math.random() > 0.5 ? '#ffffff' : '#ff00aa');
-          const size = Math.random() * (isLarge ? 4 : 3) + 1.5;
-          const life = Math.random() * (isLarge ? 0.6 : 0.4) + 0.2;
-
-          particles.push(new Particle(x, y, vx, vy, pColor, size, life));
-        }
-      }
-
-      // ------------------------------------------------------------------------
-      // 8. COLLISION DETECTION
-      // ------------------------------------------------------------------------
-      function checkCollisions() {
-        // Laser vs Enemy
-        for (let l = lasers.length - 1; l >= 0; l--) {
-          const laser = lasers[l];
-          for (let e = enemies.length - 1; e >= 0; e--) {
-            const enemy = enemies[e];
-
-            // Simple Circle-Point or AABB distance check
-            const dx = laser.x - enemy.x;
-            const dy = laser.y - enemy.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            if (dist < enemy.size + laser.width) {
-              laser.markedForDeletion = true;
-              enemy.markedForDeletion = true;
-
-              // Score update
-              score += 100;
-              updateHUD();
-
-              // Check Level Increase
-              const newLevel = Math.floor(score / 1000) + 1;
-              if (newLevel > level) {
-                level = newLevel;
-                sounds.playLevelUp();
-                updateHUD();
-                // Level Up celebration FX
-                createExplosion(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3, '#00f0ff', 40, true);
-              }
-
-              // Particle Explosion
-              createExplosion(enemy.x, enemy.y, enemy.color, 16);
-              break;
-            }
-          }
-        }
-
-        // Enemy vs Player
-        if (player.invulnerableTimer <= 0) {
-          const pCenterX = player.x + player.width / 2;
-          const pCenterY = player.y + player.height / 2;
-
-          for (let e = enemies.length - 1; e >= 0; e--) {
-            const enemy = enemies[e];
-            const dx = pCenterX - enemy.x;
-            const dy = pCenterY - enemy.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            // Radius hit check
-            if (dist < enemy.size + player.width * 0.4) {
-              enemy.markedForDeletion = true;
-              lives--;
-              updateHUD();
-
-              sounds.playHit();
-              screenShake = 0.3; // Trigger screen shake
-              player.invulnerableTimer = INVULNERABILITY_TIME;
-
-              // Explosion FX
-              createExplosion(enemy.x, enemy.y, '#ff0055', 25, true);
-
-              if (lives <= 0) {
-                triggerGameOver();
-              }
-              break;
-            }
-          }
-        }
-      }
-
-      // ------------------------------------------------------------------------
-      // 9. SPAWNING & DIFFICULTY SYSTEM
-      // ------------------------------------------------------------------------
-      function handleSpawning(dt) {
-        // Spawn rate scales up with Level
-        const baseInterval = 1.1; // seconds
-        const minInterval = 0.35;
-        const currentInterval = Math.max(minInterval, baseInterval - (level - 1) * 0.08);
-
-        spawnTimer += dt;
-        if (spawnTimer >= currentInterval) {
-          spawnTimer = 0;
-          enemies.push(new Enemy(level));
-        }
-      }
-
-      // ------------------------------------------------------------------------
-      // 10. HUD & GAME STATE TRANSITIONS
-      // ------------------------------------------------------------------------
-      function updateHUD() {
-        hudScore.textContent = score.toString().padStart(6, '0');
-        hudLevel.textContent = level.toString();
-
-        let heartsStr = '';
-        for (let i = 0; i < INITIAL_LIVES; i++) {
-          heartsStr += (i < lives) ? '♥ ' : '♡ ';
-        }
-        hudLives.textContent = heartsStr.trim();
-      }
-
-      function startGame() {
-        score = 0;
-        level = 1;
-        lives = INITIAL_LIVES;
-        spawnTimer = 0;
-        screenShake = 0;
-
-        lasers = [];
-        enemies = [];
-        particles = [];
-        player.reset();
-
-        updateHUD();
-        gameState = STATES.PLAYING;
-
-        startScreen.classList.add('hidden');
-        gameOverScreen.classList.add('hidden');
-      }
-
-      function triggerGameOver() {
-        gameState = STATES.GAME_OVER;
-        sounds.playGameOver();
-
-        let isNewHigh = false;
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem('pixel_defender_highscore', highScore.toString());
-          isNewHigh = true;
-        }
-
-        finalScoreEl.textContent = score;
-        finalLevelEl.textContent = level;
-        highScoreEl.textContent = highScore;
-
-        if (isNewHigh) {
-          newHighScoreTag.classList.remove('hidden');
-        } else {
-          newHighScoreTag.classList.add('hidden');
-        }
-
-        gameOverScreen.classList.remove('hidden');
-      }
-
-      // ------------------------------------------------------------------------
-      // 11. MAIN GAME LOOP
-      // ------------------------------------------------------------------------
-      function gameLoop(timestamp) {
-        if (!lastTime) lastTime = timestamp;
-        const dt = Math.min((timestamp - lastTime) / 1000, 0.1); // Cap delta time
-        lastTime = timestamp;
-
-        // Clear Canvas
-        ctx.save();
-
-        // Screen Shake FX on Player Hit
-        if (screenShake > 0) {
-          screenShake -= dt;
-          const shakeX = (Math.random() - 0.5) * 16;
-          const shakeY = (Math.random() - 0.5) * 16;
-          ctx.translate(shakeX, shakeY);
-        }
-
-        ctx.fillStyle = '#03030a';
-        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-        // Update & Draw Background Stars
-        stars.forEach(star => {
-          star.update(dt);
-          star.draw();
-        });
-
-        if (gameState === STATES.PLAYING) {
-          // Spawning & Updates
-          handleSpawning(dt);
-
-          player.update(dt, timestamp);
-          
-          lasers.forEach(l => l.update(dt));
-          enemies.forEach(e => e.update(dt));
-          particles.forEach(p => p.update(dt));
-
-          checkCollisions();
-
-          // Cleanup off-screen / destroyed objects
-          lasers = lasers.filter(l => !l.markedForDeletion);
-          enemies = enemies.filter(e => !e.markedForDeletion);
-          particles = particles.filter(p => !p.markedForDeletion);
-
-          // Rendering Game Objects
-          lasers.forEach(l => l.draw());
-          enemies.forEach(e => e.draw());
-          particles.forEach(p => p.draw());
-          player.draw();
-
-        } else if (gameState === STATES.START || gameState === STATES.GAME_OVER) {
-          // Render passive particle explosion updates for background visual effect
-          particles.forEach(p => {
-            p.update(dt);
-            p.draw();
-          });
-          particles = particles.filter(p => !p.markedForDeletion);
-        }
-
-        ctx.restore();
-
-        requestAnimationFrame(gameLoop);
-      }
-
-      // Initialize Game Loop
-      updateHUD();
-      requestAnimationFrame(gameLoop);
-
-    })();
-  </script>
+  <!-- JavaScript Modules -->
+  <script src="js/audio.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/game.js"></script>
 </body>
 </html>
