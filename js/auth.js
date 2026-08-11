@@ -68,27 +68,10 @@ class AuthManager {
   }
 
   isUserRegistered() {
-    if (!this.isGuest && this.user && (this.user.email || this.user.name)) {
-      return true;
-    }
-    const savedUser = localStorage.getItem('pixel_defender_user');
-    if (savedUser) {
-      try {
-        const uData = JSON.parse(savedUser);
-        if (uData && (uData.name || uData.email)) {
-          this.user = uData;
-          this.isGuest = false;
-          return true;
-        }
-      } catch (e) { }
-    }
-    return false;
+    return !this.isGuest && !!this.user && (!!this.user.email || !!this.user.name);
   }
 
   playAsGuest() {
-    if (this.isUserRegistered()) {
-      return true;
-    }
     this.isGuest = true;
     this.user = null;
     this.updateUserUI('Guest Player', '');

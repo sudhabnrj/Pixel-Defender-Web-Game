@@ -11,7 +11,9 @@ const bgEasyImg = new Image(); bgEasyImg.src = 'images/bg-easy.webp';
 const bgMediumImg = new Image(); bgMediumImg.src = 'images/bg-medium.webp';
 const bgHardImg = new Image(); bgHardImg.src = 'images/bg-hard.webp';
 
-const dangerShipImage = new Image(); dangerShipImage.src = 'images/danger-ship.webp';
+const dangerShipEasyImage = new Image(); dangerShipEasyImage.src = 'images/danger-ship.webp';
+const dangerShipMediumImage = new Image(); dangerShipMediumImage.src = 'images/danger-ship-medium.webp';
+const dangerShipHardImage = new Image(); dangerShipHardImage.src = 'images/danger-ship-hard.webp';
 
 // Preload Custom Stone WebP Sprites
 const stoneImages = [];
@@ -519,7 +521,7 @@ class MegaStone {
     }
   }
 
-  draw(ctx) {
+  draw(ctx, mode = 'EASY') {
     ctx.save();
     ctx.translate(this.x, this.y);
 
@@ -531,8 +533,15 @@ class MegaStone {
       ctx.shadowColor = '#ff0055';
     }
 
-    if (dangerShipImage.complete && dangerShipImage.naturalWidth !== 0) {
-      ctx.drawImage(dangerShipImage, -this.width / 2, -this.height / 2, this.width, this.height);
+    let shipImg = dangerShipEasyImage;
+    if (mode === 'HARD') {
+      shipImg = (dangerShipHardImage.complete && dangerShipHardImage.naturalWidth !== 0) ? dangerShipHardImage : dangerShipEasyImage;
+    } else if (mode === 'MEDIUM') {
+      shipImg = (dangerShipMediumImage.complete && dangerShipMediumImage.naturalWidth !== 0) ? dangerShipMediumImage : dangerShipEasyImage;
+    }
+
+    if (shipImg.complete && shipImg.naturalWidth !== 0) {
+      ctx.drawImage(shipImg, -this.width / 2, -this.height / 2, this.width, this.height);
     } else {
       ctx.fillStyle = '#ff0055';
       ctx.beginPath();

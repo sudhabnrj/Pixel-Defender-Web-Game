@@ -251,6 +251,9 @@
   function togglePause() {
     if (gameState === STATES.PLAYING) {
       gameState = STATES.PAUSED;
+      if (window.authManager) {
+        authManager.updateUserUI(authManager.user ? (authManager.user.name || authManager.user.displayName || '') : 'Guest Player', '');
+      }
       pauseScreen.classList.remove('hidden');
       updateWeaponLockUI();
     } else if (gameState === STATES.PAUSED) {
@@ -661,7 +664,7 @@
 
       lasers.forEach(l => l.draw(ctx));
       enemies.forEach(e => e.draw(ctx));
-      megaStones.forEach(ms => ms.draw(ctx));
+      megaStones.forEach(ms => ms.draw(ctx, currentMode));
       shieldItems.forEach(si => si.draw(ctx));
       particles.forEach(p => p.draw(ctx));
       player.draw(ctx, selectedWeaponId);
@@ -670,7 +673,7 @@
       lasers.forEach(l => l.draw(ctx));
       enemyLasers.forEach(el => el.draw(ctx));
       enemies.forEach(e => e.draw(ctx));
-      megaStones.forEach(ms => ms.draw(ctx));
+      megaStones.forEach(ms => ms.draw(ctx, currentMode));
       shieldItems.forEach(si => si.draw(ctx));
       particles.forEach(p => p.draw(ctx));
       player.draw(ctx, selectedWeaponId);
