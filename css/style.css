@@ -157,15 +157,15 @@ html, body {
 .health-kit-container {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-top: 2px;
 }
 
 .health-kit-icon {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
-  filter: drop-shadow(0 0 6px rgba(255, 0, 85, 0.8));
+  filter: drop-shadow(0 0 8px rgba(255, 0, 85, 0.85));
   transition: all 0.3s ease;
 }
 
@@ -291,6 +291,74 @@ html, body {
 .auth-input:focus {
   border-color: #00f0ff;
   box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+}
+
+/* Password Toggle Field Wrapper */
+.password-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper .auth-input {
+  width: 100%;
+  padding-right: 36px;
+  box-sizing: border-box;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #00f0ff;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.75;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.toggle-password-btn:hover {
+  opacity: 1;
+  color: #ffffff;
+}
+
+.toggle-password-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* Notification Banners for Auth Errors */
+.auth-notification {
+  background: rgba(255, 0, 85, 0.25);
+  border: 1px solid #ff0055;
+  color: #ff5588;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-family: 'GoodTiming', monospace, sans-serif;
+  box-shadow: 0 0 12px rgba(255, 0, 85, 0.4);
+  transition: all 0.3s ease;
+}
+
+.auth-notification.success {
+  background: rgba(0, 255, 170, 0.25);
+  border-color: #00ffaa;
+  color: #00ffaa;
+  box-shadow: 0 0 12px rgba(0, 255, 170, 0.4);
+}
+
+.auth-notification.hidden {
+  display: none !important;
 }
 
 /* Play As Guest Button (Rounded Pill Style) */
