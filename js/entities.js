@@ -478,6 +478,7 @@ class Enemy {
 // Shooter Danger Ship Boss
 class MegaStone {
   constructor(lvl, canvasWidth) {
+    this.lvl = lvl;
     this.width = 90;
     this.height = 90;
     this.x = canvasWidth / 2;
@@ -486,16 +487,15 @@ class MegaStone {
     this.descendSpeed = 75;
 
     this.vx = (150 + (lvl - 1) * 3) * (Math.random() > 0.5 ? 1 : -1);
-    this.maxHp = Math.min(120, 50 + Math.floor((lvl - 1) * 1.5));
+    this.maxHp = Math.min(150, 50 + Math.floor((lvl - 1) * 1.5));
     this.hp = this.maxHp;
     
     this.lastShootTime = 0;
-    this.shootInterval = Math.max(0.6, 1.25 - (lvl - 1) * 0.008);
     this.markedForDeletion = false;
     this.hitFlashTimer = 0;
   }
 
-  update(dt, timestamp, enemyLasers, canvasHeight, canvasWidth) {
+  update(dt, timestamp, enemyLasers, canvasHeight, canvasWidth, currentMode = 'EASY') {
     if (this.y < this.targetY) {
       this.y += this.descendSpeed * dt;
     } else {
@@ -513,11 +513,46 @@ class MegaStone {
       this.hitFlashTimer -= dt;
     }
 
-    if (this.y >= 50 && timestamp / 1000 - this.lastShootTime >= this.shootInterval) {
+    let shootInterval = Math.max(0.6, 1.2 - (this.lvl - 1) * 0.008);
+    if (currentMode === 'HARD') {
+      shootInterval = Math.max(0.35, 0.65 - (this.lvl - 1) * 0.008);
+    } else if (currentMode === 'MEDIUM') {
+      shootInterval = Math.max(0.48, 0.9 - (this.lvl - 1) * 0.008);
+    }
+
+    if (this.y >= 50 && timestamp / 1000 - this.lastShootTime >= shootInterval) {
       this.lastShootTime = timestamp / 1000;
-      enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 450));
-      enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -110, 430));
-      enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 110, 430));
+
+      if (currentMode === 'HARD') {
+        // HARD MODE (danger-ship-hard.webp): Very Hard Multiple Shooting (8 Lasers Stream)
+        enemyLasers.push(new EnemyLaser(this.x - 14, this.y + 40, -30, 520));
+        enemyLasers.push(new EnemyLaser(this.x + 14, this.y + 40, 30, 520));
+
+        enemyLasers.push(new EnemyLaser(this.x - 28, this.y + 35, -130, 480));
+        enemyLasers.push(new EnemyLaser(this.x + 28, this.y + 35, 130, 480));
+
+        enemyLasers.push(new EnemyLaser(this.x - 42, this.y + 30, -250, 440));
+        enemyLasers.push(new EnemyLaser(this.x + 42, this.y + 30, 250, 440));
+
+        enemyLasers.push(new EnemyLaser(this.x - 56, this.y + 25, -360, 390));
+        enemyLasers.push(new EnemyLaser(this.x + 56, this.y + 25, 360, 390));
+
+      } else if (currentMode === 'MEDIUM') {
+        // MEDIUM MODE (danger-ship-medium.webp): Medium-Hard Multiple Shooting (5 Lasers Spread)
+        enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 480));
+
+        enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -120, 450));
+        enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 120, 450));
+
+        enemyLasers.push(new EnemyLaser(this.x - 48, this.y + 30, -240, 420));
+        enemyLasers.push(new EnemyLaser(this.x + 48, this.y + 30, 240, 420));
+
+      } else {
+        // EASY MODE (danger-ship-easy.webp): Standard Shooting (3 Lasers Spread)
+        enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 450));
+        enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -110, 430));
+        enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 110, 430));
+      }
     }
   }
 

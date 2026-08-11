@@ -2,7 +2,7 @@
    PIXEL DEFENDER — MAIN GAME ENGINE (8-WAY MOVEMENT & DYNAMIC MODE BACKGROUNDS)
    ========================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   // ------------------------------------------------------------------------
@@ -42,8 +42,37 @@
     if (!gameContainer.classList.contains(stageClass)) {
       gameContainer.className = `game-container ${stageClass} mode-${currentMode.toLowerCase()}`;
       setTimeout(resizeCanvasToContainer, 420);
-      showBanner(`LEVEL ${lvl} / 100: DEFENSE ZONE EXPANDED!`);
     }
+  }
+
+  const GALAXY_WORLDS = [
+    { id: 1, name: "WORLD 1 — PIXEL GALAXY", range: "Levels 1–10", minLvl: 1, maxLvl: 10, bg: "images/bg-theme/Pixel-Galaxy.webp" },
+    { id: 2, name: "WORLD 2 — RED NEBULA", range: "Levels 11–20", minLvl: 11, maxLvl: 20, bg: "images/bg-theme/Red-Nebula.webp" },
+    { id: 3, name: "WORLD 3 — ALIEN SECTOR", range: "Levels 21–30", minLvl: 21, maxLvl: 30, bg: "images/bg-theme/Alien-Sector.webp" },
+    { id: 4, name: "WORLD 4 — BLACK HOLE", range: "Levels 31–40", minLvl: 31, maxLvl: 40, bg: "images/bg-theme/Black-Hole.webp" },
+    { id: 5, name: "WORLD 5 — CYBER SPACE", range: "Levels 41–50", minLvl: 41, maxLvl: 50, bg: "images/bg-theme/Cyber-Space.webp" },
+    { id: 6, name: "WORLD 6 — ICE GALAXY", range: "Levels 51–60", minLvl: 51, maxLvl: 60, bg: "images/bg-theme/Ice-Galaxy.webp" },
+    { id: 7, name: "WORLD 7 — DESTROYED EARTH", range: "Levels 61–70", minLvl: 61, maxLvl: 70, bg: "images/bg-theme/Destroyed-Earth.webp" },
+    { id: 8, name: "WORLD 8 — DARK DIMENSION", range: "Levels 71–80", minLvl: 71, maxLvl: 80, bg: "images/bg-theme/Dark-Dimension.webp" },
+    { id: 9, name: "WORLD 9 — ALIEN EMPIRE", range: "Levels 81–90", minLvl: 81, maxLvl: 90, bg: "images/bg-theme/Alien-Empire.webp" },
+    { id: 10, name: "WORLD 10 — FINAL GALAXY", range: "Levels 91–100", minLvl: 91, maxLvl: 100, bg: "images/bg-theme/Final-Galaxy.webp" }
+  ];
+
+  let currentWorldId = 0;
+
+  function updateWorldBackground(lvl, forceBanner = false) {
+    const safeLvl = Math.max(1, Math.min(100, lvl));
+    const world = GALAXY_WORLDS.find(w => safeLvl >= w.minLvl && safeLvl <= w.maxLvl) || GALAXY_WORLDS[0];
+
+    const bgUrl = `url("${encodeURI(world.bg)}")`;
+    if (gameContainer) gameContainer.style.backgroundImage = bgUrl;
+    if (gameWrapper) gameWrapper.style.backgroundImage = bgUrl;
+
+    if (world.id !== currentWorldId || forceBanner) {
+      currentWorldId = world.id;
+      showBanner(`🌌 ${world.name} (${world.range})`);
+    }
+    return world;
   }
 
   function showBanner(text, isDanger = false) {
@@ -54,8 +83,8 @@
     else banner.classList.remove('danger-banner');
 
     banner.classList.add('show');
-    setTimeout(() => { 
-      banner.classList.remove('show'); 
+    setTimeout(() => {
+      banner.classList.remove('show');
       banner.classList.remove('danger-banner');
     }, 3600);
   }
@@ -358,6 +387,7 @@
               updateHUD();
 
               updateContainerSizeForLevel(level);
+              updateWorldBackground(level);
               updateWeaponLockUI();
 
               if (level === 5) {
@@ -548,6 +578,7 @@
 
     if (gameWrapper) gameWrapper.className = 'game-wrapper mode-easy';
     gameContainer.className = 'game-container stage-1 mode-easy';
+    updateWorldBackground(1, true);
     setTimeout(resizeCanvasToContainer, 300);
 
     player.reset(canvasWidth, canvasHeight);
