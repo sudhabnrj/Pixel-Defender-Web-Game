@@ -14,6 +14,7 @@ const bgHardImg = new Image(); bgHardImg.src = 'images/bg-hard.webp';
 const dangerShipEasyImage = new Image(); dangerShipEasyImage.src = 'images/danger-ship-easy.webp';
 const dangerShipMediumImage = new Image(); dangerShipMediumImage.src = 'images/danger-ship-medium.webp';
 const dangerShipHardImage = new Image(); dangerShipHardImage.src = 'images/danger-ship-hard.webp';
+const sideAttackShipImage = new Image(); sideAttackShipImage.src = 'images/danger-ship-side-attack.webp';
 
 // Preload Custom Stone WebP Sprites
 const stoneImages = [];
@@ -524,18 +525,24 @@ class MegaStone {
       this.lastShootTime = timestamp / 1000;
 
       if (currentMode === 'HARD') {
-        // HARD MODE (danger-ship-hard.webp): Very Hard Multiple Shooting (8 Lasers Stream)
-        enemyLasers.push(new EnemyLaser(this.x - 14, this.y + 40, -30, 520));
-        enemyLasers.push(new EnemyLaser(this.x + 14, this.y + 40, 30, 520));
+        // HARD MODE (danger-ship-hard.webp): Massive Multi-Bullet Stream Barrage (12 Lasers Stream)
+        enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 560));
+        enemyLasers.push(new EnemyLaser(this.x - 12, this.y + 40, -35, 540));
+        enemyLasers.push(new EnemyLaser(this.x + 12, this.y + 40, 35, 540));
 
-        enemyLasers.push(new EnemyLaser(this.x - 28, this.y + 35, -130, 480));
-        enemyLasers.push(new EnemyLaser(this.x + 28, this.y + 35, 130, 480));
+        enemyLasers.push(new EnemyLaser(this.x - 24, this.y + 36, -110, 510));
+        enemyLasers.push(new EnemyLaser(this.x + 24, this.y + 36, 110, 510));
 
-        enemyLasers.push(new EnemyLaser(this.x - 42, this.y + 30, -250, 440));
-        enemyLasers.push(new EnemyLaser(this.x + 42, this.y + 30, 250, 440));
+        enemyLasers.push(new EnemyLaser(this.x - 36, this.y + 32, -210, 480));
+        enemyLasers.push(new EnemyLaser(this.x + 36, this.y + 32, 210, 480));
 
-        enemyLasers.push(new EnemyLaser(this.x - 56, this.y + 25, -360, 390));
-        enemyLasers.push(new EnemyLaser(this.x + 56, this.y + 25, 360, 390));
+        enemyLasers.push(new EnemyLaser(this.x - 48, this.y + 28, -320, 440));
+        enemyLasers.push(new EnemyLaser(this.x + 48, this.y + 28, 320, 440));
+
+        enemyLasers.push(new EnemyLaser(this.x - 60, this.y + 24, -440, 400));
+        enemyLasers.push(new EnemyLaser(this.x + 60, this.y + 24, 440, 400));
+        enemyLasers.push(new EnemyLaser(this.x - 72, this.y + 20, -560, 360));
+        enemyLasers.push(new EnemyLaser(this.x + 72, this.y + 20, 560, 360));
 
       } else if (currentMode === 'MEDIUM') {
         // MEDIUM MODE (danger-ship-medium.webp): Medium-Hard Multiple Shooting (5 Lasers Spread)
@@ -599,6 +606,93 @@ class MegaStone {
     ctx.fillRect(barX, barY, (this.hp / this.maxHp) * barW, barH);
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 1.2;
+    ctx.strokeRect(barX, barY, barW, barH);
+    ctx.restore();
+  }
+}
+
+// Right-Side Attack Danger Ship
+class SideAttackShip {
+  constructor(lvl, canvasWidth) {
+    this.lvl = lvl;
+    this.width = 85;
+    this.height = 85;
+    this.x = canvasWidth - this.width / 2 - 15;
+    this.y = -this.height * 1.5;
+    this.speed = 130 + (lvl - 1) * 3;
+
+    this.maxHp = Math.min(80, 25 + Math.floor((lvl - 1) * 1.2));
+    this.hp = this.maxHp;
+
+    this.lastShootTime = 0;
+    this.markedForDeletion = false;
+    this.hitFlashTimer = 0;
+  }
+
+  update(dt, timestamp, enemyLasers, canvasHeight, currentMode = 'EASY') {
+    this.y += this.speed * dt;
+
+    if (this.hitFlashTimer > 0) {
+      this.hitFlashTimer -= dt;
+    }
+
+    if (this.y > canvasHeight + this.height * 2) {
+      this.markedForDeletion = true;
+    }
+
+    let shootInterval = currentMode === 'HARD' ? 0.55 : (currentMode === 'MEDIUM' ? 0.85 : 1.2);
+    if (this.y > 30 && this.y < canvasHeight - 40 && timestamp / 1000 - this.lastShootTime >= shootInterval) {
+      this.lastShootTime = timestamp / 1000;
+
+      if (currentMode === 'HARD') {
+        enemyLasers.push(new EnemyLaser(this.x - 20, this.y + 10, -280, 420));
+        enemyLasers.push(new EnemyLaser(this.x - 10, this.y + 20, -180, 460));
+        enemyLasers.push(new EnemyLaser(this.x, this.y + 30, -80, 490));
+      } else if (currentMode === 'MEDIUM') {
+        enemyLasers.push(new EnemyLaser(this.x - 15, this.y + 15, -220, 440));
+        enemyLasers.push(new EnemyLaser(this.x, this.y + 25, -110, 470));
+      } else {
+        enemyLasers.push(new EnemyLaser(this.x - 10, this.y + 20, -180, 450));
+      }
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    if (this.hitFlashTimer > 0) {
+      ctx.shadowBlur = 35;
+      ctx.shadowColor = '#00ffff';
+    } else {
+      ctx.shadowBlur = 22;
+      ctx.shadowColor = '#ff00aa';
+    }
+
+    if (sideAttackShipImage.complete && sideAttackShipImage.naturalWidth !== 0) {
+      ctx.drawImage(sideAttackShipImage, -this.width / 2, -this.height / 2, this.width, this.height);
+    } else {
+      ctx.fillStyle = '#ff00aa';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.width / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    ctx.save();
+    const barW = 70;
+    const barH = 6;
+    const barX = this.x - barW / 2;
+    const barY = this.y - this.height / 2 - 12;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(barX, barY, barW, barH);
+
+    ctx.fillStyle = this.hp < this.maxHp * 0.3 ? '#ff0055' : '#ff00aa';
+    ctx.fillRect(barX, barY, (this.hp / this.maxHp) * barW, barH);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
     ctx.strokeRect(barX, barY, barW, barH);
     ctx.restore();
   }
