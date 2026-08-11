@@ -393,4 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Guarantee UI updates once DOM elements are ready
+  authManager.updateUserUI(authManager.user ? (authManager.user.name || authManager.user.displayName || '') : 'Guest Player', '');
 });

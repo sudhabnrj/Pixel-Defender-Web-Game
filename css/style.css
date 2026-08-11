@@ -197,11 +197,13 @@ html, body {
 }
 
 .user-badge-hud {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 25;
-  background: rgba(0, 255, 170, 0.2); border: 1px solid #00ffaa; color: #00ffaa;
-  padding: 4px 14px; font-size: 11px; border-radius: 12px; font-weight: bold;
+  position: relative; top: auto; left: auto; transform: none; z-index: 25;
+  pointer-events: auto;
+  background: rgba(0, 255, 170, 0.15); border: 1px solid #00ffaa; color: #00ffaa;
+  padding: 4px 12px; font-size: 11px; border-radius: 12px; font-weight: bold;
   font-family: 'GoodTiming', monospace, sans-serif;
   display: flex; align-items: center; gap: 8px;
+  max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .logout-link {
@@ -256,6 +258,13 @@ html, body {
   font-size: 11px;
   color: #88aaff;
   display: block;
+}
+
+/* Hide Login/Register forms completely when user is logged in */
+.user-profile-box:not(.hidden) ~ .auth-tabs,
+.user-profile-box:not(.hidden) ~ .auth-form,
+.user-profile-box:not(.hidden) ~ .guest-btn {
+  display: none !important;
 }
 
 /* BANNERS & DANGER NOTIFICATIONS */
