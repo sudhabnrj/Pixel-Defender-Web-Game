@@ -67,10 +67,30 @@ class AuthManager {
     this.updateUserUI('Guest Player', '');
   }
 
+  isUserRegistered() {
+    if (!this.isGuest && this.user && (this.user.email || this.user.name)) {
+      return true;
+    }
+    const savedUser = localStorage.getItem('pixel_defender_user');
+    if (savedUser) {
+      try {
+        const uData = JSON.parse(savedUser);
+        if (uData && (uData.name || uData.email)) {
+          this.user = uData;
+          this.isGuest = false;
+          return true;
+        }
+      } catch (e) { }
+    }
+    return false;
+  }
+
   playAsGuest() {
+    if (this.isUserRegistered()) {
+      return true;
+    }
     this.isGuest = true;
     this.user = null;
-    localStorage.removeItem('pixel_defender_user');
     this.updateUserUI('Guest Player', '');
     return true;
   }
@@ -162,13 +182,15 @@ class AuthManager {
   }
 
   updateUserUI(name, email) {
+    const isReg = this.isUserRegistered();
     const userBadge = document.getElementById('hudUserBadge');
     if (userBadge) {
-      userBadge.textContent = name;
-      userBadge.style.color = this.isGuest ? '#aaa' : '#00ffaa';
+      const displayName = (isReg && this.user) ? (this.user.name || this.user.displayName || name) : name;
+      userBadge.textContent = displayName;
+      userBadge.style.color = isReg ? '#00ffaa' : '#aaa';
     }
     const guestConvertBox = document.getElementById('guestConvertBox');
-    if (guestConvertBox && !this.isGuest) {
+    if (guestConvertBox && isReg) {
       guestConvertBox.classList.add('hidden');
     }
   }

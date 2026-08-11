@@ -603,10 +603,13 @@
     if (isNewHigh) newHighScoreTag.classList.remove('hidden');
     else newHighScoreTag.classList.add('hidden');
 
-    if (window.authManager && authManager.isGuest && guestConvertBox) {
-      guestConvertBox.classList.remove('hidden');
-    } else if (guestConvertBox) {
-      guestConvertBox.classList.add('hidden');
+    const isRegistered = window.authManager && (window.authManager.isUserRegistered ? window.authManager.isUserRegistered() : !window.authManager.isGuest);
+    if (guestConvertBox) {
+      if (!isRegistered) {
+        guestConvertBox.classList.remove('hidden');
+      } else {
+        guestConvertBox.classList.add('hidden');
+      }
     }
 
     gameOverScreen.classList.remove('hidden');
