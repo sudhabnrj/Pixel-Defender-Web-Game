@@ -201,6 +201,61 @@ html, body {
   background: rgba(0, 255, 170, 0.2); border: 1px solid #00ffaa; color: #00ffaa;
   padding: 4px 14px; font-size: 11px; border-radius: 12px; font-weight: bold;
   font-family: 'GoodTiming', monospace, sans-serif;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.logout-link {
+  background: rgba(255, 0, 85, 0.25);
+  border: 1px solid #ff0055;
+  color: #ff3377;
+  font-family: 'GoodTiming', monospace, sans-serif;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.logout-link:hover {
+  background: rgba(255, 0, 85, 0.85);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 0, 85, 0.6);
+}
+
+.logout-link.hidden { display: none !important; }
+
+.user-profile-box {
+  background: rgba(0, 255, 170, 0.08);
+  border: 1.5px solid #00ffaa;
+  border-radius: 8px;
+  padding: 14px 16px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.user-profile-box.hidden { display: none !important; }
+
+.user-profile-status {
+  font-size: 9px;
+  color: #00ffaa;
+  letter-spacing: 1.5px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.user-profile-name {
+  font-size: 16px;
+  color: #ffffff;
+  margin: 0 0 2px 0;
+  font-family: 'GoodTiming', monospace, sans-serif;
+}
+
+.user-profile-email {
+  font-size: 11px;
+  color: #88aaff;
+  display: block;
 }
 
 /* BANNERS & DANGER NOTIFICATIONS */

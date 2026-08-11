@@ -181,14 +181,67 @@ class AuthManager {
     }
   }
 
+  logout() {
+    if (this.auth) {
+      try {
+        this.auth.signOut();
+      } catch (e) { }
+    }
+    this.user = null;
+    this.isGuest = true;
+    localStorage.removeItem('pixel_defender_user');
+    this.updateUserUI('Guest Player', '');
+    this.showNotification('Successfully logged out.', false, 'authNotif');
+  }
+
   updateUserUI(name, email) {
     const isReg = this.isUserRegistered();
-    const userBadge = document.getElementById('hudUserBadge');
-    if (userBadge) {
-      const displayName = (isReg && this.user) ? (this.user.name || this.user.displayName || name) : name;
-      userBadge.textContent = displayName;
-      userBadge.style.color = isReg ? '#00ffaa' : '#aaa';
+    const displayName = (isReg && this.user) ? (this.user.name || this.user.displayName || name) : name;
+    const userEmail = (isReg && this.user) ? (this.user.email || email) : email;
+
+    const hudUserName = document.getElementById('hudUserName');
+    const hudUserBadge = document.getElementById('hudUserBadge');
+    if (hudUserName) hudUserName.textContent = displayName;
+    if (hudUserBadge) hudUserBadge.style.borderColor = isReg ? '#00ffaa' : '#aaa';
+
+    // Show or hide Logout buttons
+    document.querySelectorAll('.js-logout-btn').forEach(btn => {
+      if (isReg) btn.classList.remove('hidden');
+      else btn.classList.add('hidden');
+    });
+
+    const userProfileBox = document.getElementById('userProfileBox');
+    const profileUserName = document.getElementById('profileUserName');
+    const profileUserEmail = document.getElementById('profileUserEmail');
+    const authTabsHeader = document.getElementById('authTabsHeader');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const guestPlayBtn = document.getElementById('guestPlayBtn');
+
+    if (userProfileBox) {
+      if (isReg) {
+        userProfileBox.classList.remove('hidden');
+        if (profileUserName) profileUserName.textContent = displayName;
+        if (profileUserEmail) profileUserEmail.textContent = userEmail;
+        if (authTabsHeader) authTabsHeader.classList.add('hidden');
+        if (loginForm) loginForm.classList.add('hidden');
+        if (registerForm) registerForm.classList.add('hidden');
+        if (guestPlayBtn) guestPlayBtn.classList.add('hidden');
+      } else {
+        userProfileBox.classList.add('hidden');
+        if (authTabsHeader) authTabsHeader.classList.remove('hidden');
+        if (guestPlayBtn) guestPlayBtn.classList.remove('hidden');
+        const tabLoginBtn = document.getElementById('tabLoginBtn');
+        if (tabLoginBtn && tabLoginBtn.classList.contains('active')) {
+          if (loginForm) loginForm.classList.remove('hidden');
+          if (registerForm) registerForm.classList.add('hidden');
+        } else {
+          if (registerForm) registerForm.classList.remove('hidden');
+          if (loginForm) loginForm.classList.add('hidden');
+        }
+      }
     }
+
     const guestConvertBox = document.getElementById('guestConvertBox');
     if (guestConvertBox && isReg) {
       guestConvertBox.classList.add('hidden');
@@ -211,7 +264,7 @@ class AuthManager {
 
 const authManager = new AuthManager();
 
-// DOM Event Bindings for Auth Tabs, Forms & Password Toggles
+// DOM Event Bindings for Auth Tabs, Forms, Password Toggles & Logout
 document.addEventListener('DOMContentLoaded', () => {
   const tabLoginBtn = document.getElementById('tabLoginBtn');
   const tabRegisterBtn = document.getElementById('tabRegisterBtn');
@@ -219,6 +272,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const registerForm = document.getElementById('registerForm');
   const guestPlayBtn = document.getElementById('guestPlayBtn');
   const guestRegForm = document.getElementById('guestRegForm');
+
+  // Logout Buttons Event Listener
+  document.querySelectorAll('.js-logout-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      authManager.logout();
+    });
+  });
 
   // Password Visibility Toggle Listener
   document.querySelectorAll('.js-toggle-pwd').forEach(btn => {

@@ -30,7 +30,10 @@
       <div class="banner-notification" id="bannerNotif">LEVEL 4 REACHED: DEFENSE ZONE EXPANDED!</div>
 
       <!-- User Profile Badge in HUD -->
-      <div class="user-badge-hud" id="hudUserBadge">Guest Player</div>
+      <div class="user-badge-hud" id="hudUserBadge">
+        <span id="hudUserName">Guest Player</span>
+        <button type="button" class="logout-link hidden js-logout-btn" title="Logout Account">LOGOUT</button>
+      </div>
 
       <!-- HUD -->
       <div class="hud">
@@ -102,7 +105,15 @@
         <div class="auth-box">
           <div class="auth-notification hidden" id="authNotif"></div>
 
-          <div class="auth-tabs">
+          <!-- Profile Card for Logged In Users -->
+          <div class="user-profile-box hidden" id="userProfileBox">
+            <span class="user-profile-status">✓ ACCOUNT LOGGED IN</span>
+            <h3 class="user-profile-name" id="profileUserName">Player Name</h3>
+            <span class="user-profile-email" id="profileUserEmail">email@example.com</span>
+            <button type="button" class="arcade-btn quit-btn js-logout-btn" style="padding: 6px 18px; font-size:11px; margin-top:10px;">LOGOUT ACCOUNT</button>
+          </div>
+
+          <div class="auth-tabs" id="authTabsHeader">
             <button type="button" class="auth-tab active" id="tabLoginBtn">LOGIN</button>
             <button type="button" class="auth-tab" id="tabRegisterBtn">REGISTER</button>
           </div>
@@ -169,6 +180,7 @@
 
         <div class="btn-group">
           <button class="arcade-btn" id="resumeBtn">RESUME GAME</button>
+          <button class="arcade-btn quit-btn js-logout-btn hidden" id="pauseLogoutBtn">LOGOUT</button>
           <button class="arcade-btn quit-btn js-quit-btn">QUIT GAME</button>
           <button class="icon-btn js-restart-btn" title="Restart Game (R)" style="width: 44px; height: 44px;">
             <svg viewBox="0 0 24 24" style="width: 24px; height: 24px;">
@@ -265,10 +277,10 @@
   </main>
 
   <!-- JavaScript Modules -->
-  <script src="js/auth.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/entities.js"></script>
-  <script src="js/game.js"></script>
+  <script src="js/auth.js?v=3"></script>
+  <script src="js/audio.js?v=3"></script>
+  <script src="js/entities.js?v=3"></script>
+  <script src="js/game.js?v=3"></script>
 
 </body>
 
