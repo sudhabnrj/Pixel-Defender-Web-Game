@@ -34,15 +34,7 @@
   }
 
   function updateContainerSizeForLevel(lvl) {
-    let stageClass = 'stage-1';
-    if (lvl >= 10) stageClass = 'stage-4';
-    else if (lvl >= 7) stageClass = 'stage-3';
-    else if (lvl >= 4) stageClass = 'stage-2';
-
-    if (!gameContainer.classList.contains(stageClass)) {
-      gameContainer.className = `game-container ${stageClass} mode-${currentMode.toLowerCase()}`;
-      setTimeout(resizeCanvasToContainer, 420);
-    }
+    resizeCanvasToContainer();
   }
 
   const GALAXY_WORLDS = [
@@ -576,10 +568,10 @@
     shieldItems = [];
     particles = [];
 
-    if (gameWrapper) gameWrapper.className = 'game-wrapper mode-easy';
-    gameContainer.className = 'game-container stage-1 mode-easy';
+    if (gameWrapper) gameWrapper.className = 'game-wrapper';
+    gameContainer.className = 'game-container';
     updateWorldBackground(1, true);
-    setTimeout(resizeCanvasToContainer, 300);
+    resizeCanvasToContainer();
 
     player.reset(canvasWidth, canvasHeight);
     updateHUD();
