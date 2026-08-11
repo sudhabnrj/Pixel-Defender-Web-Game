@@ -11,7 +11,7 @@ const bgEasyImg = new Image(); bgEasyImg.src = 'images/bg-easy.webp';
 const bgMediumImg = new Image(); bgMediumImg.src = 'images/bg-medium.webp';
 const bgHardImg = new Image(); bgHardImg.src = 'images/bg-hard.webp';
 
-const dangerShipEasyImage = new Image(); dangerShipEasyImage.src = 'images/danger-ship.webp';
+const dangerShipEasyImage = new Image(); dangerShipEasyImage.src = 'images/danger-ship-easy.webp';
 const dangerShipMediumImage = new Image(); dangerShipMediumImage.src = 'images/danger-ship-medium.webp';
 const dangerShipHardImage = new Image(); dangerShipHardImage.src = 'images/danger-ship-hard.webp';
 

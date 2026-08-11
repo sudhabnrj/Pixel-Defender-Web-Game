@@ -532,7 +532,7 @@
   // ------------------------------------------------------------------------
   function updateHUD() {
     hudScore.textContent = score.toString().padStart(6, '0');
-    hudLevel.textContent = `${level} / 100`;
+    hudLevel.textContent = level;
 
     hudModeBadge.textContent = currentMode;
     hudModeBadge.className = `mode-badge ${currentMode.toLowerCase()}`;
@@ -623,7 +623,7 @@
     }
 
     finalScoreEl.textContent = score;
-    finalLevelEl.textContent = `${level} / 100`;
+    finalLevelEl.textContent = level;
     highScoreEl.textContent = highScore;
 
     if (isNewHigh) newHighScoreTag.classList.remove('hidden');
@@ -712,6 +712,7 @@
 
   // Initialization
   sounds.updateUI();
+  updateWorldBackground(1, true);
   resizeCanvasToContainer();
   updateHUD();
   requestAnimationFrame(gameLoop);
