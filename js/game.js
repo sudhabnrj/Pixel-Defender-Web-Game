@@ -139,7 +139,6 @@
   let lastTime = 0;
   let spawnTimer = 0;
   let megaStoneSpawnTimer = 0;
-  let sideAttackSpawnTimer = 0;
   let shieldItemSpawnTimer = 0;
   let screenShake = 0;
 
@@ -149,7 +148,6 @@
   let enemyLasers = [];
   let enemies = [];
   let megaStones = [];
-  let sideAttackShips = [];
   let shieldItems = [];
   let particles = [];
 
@@ -474,32 +472,6 @@
           break;
         }
       }
-
-      for (let sa = sideAttackShips.length - 1; sa >= 0; sa--) {
-        const sideShip = sideAttackShips[sa];
-        const dx = laser.x - sideShip.x;
-        const dy = laser.y - sideShip.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < sideShip.width / 2 + laser.width) {
-          if (!laser.isCentral) laser.markedForDeletion = true;
-          sideShip.hp -= 1;
-          sideShip.hitFlashTimer = 0.08;
-
-          createExplosion(laser.x, laser.y, '#ff00aa', 6);
-
-          if (sideShip.hp <= 0) {
-            sideShip.markedForDeletion = true;
-            score += 300;
-            sounds.playLevelUp();
-
-            showBanner('RIGHT-SIDE DANGER SHIP DESTROYED! +300 PTS!');
-            createExplosion(sideShip.x, sideShip.y, '#ff00aa', 55, true);
-            updateHUD();
-          }
-          break;
-        }
-      }
     }
 
     if (player.invulnerableTimer <= 0) {
@@ -590,14 +562,6 @@
       triggerDangerBossAlert();
     }
 
-    sideAttackSpawnTimer += dt;
-    const sideInterval = currentMode === 'HARD' ? 12 : (currentMode === 'MEDIUM' ? 16 : 22);
-    if (sideAttackSpawnTimer >= sideInterval && sideAttackShips.length === 0) {
-      sideAttackSpawnTimer = 0;
-      sideAttackShips.push(new SideAttackShip(level, canvasWidth));
-      showBanner('⚠️ WARNING: RIGHT-SIDE DANGER SHIP APPROACHING!', true);
-    }
-
     shieldItemSpawnTimer += dt;
     if (shieldItemSpawnTimer >= 75 && shieldItems.length === 0) {
       shieldItemSpawnTimer = 0;
@@ -636,7 +600,6 @@
     currentMode = 'EASY';
     spawnTimer = 0;
     megaStoneSpawnTimer = 0;
-    sideAttackSpawnTimer = 0;
     shieldItemSpawnTimer = 0;
     screenShake = 0;
     selectedWeaponId = 1;
@@ -645,7 +608,6 @@
     enemyLasers = [];
     enemies = [];
     megaStones = [];
-    sideAttackShips = [];
     shieldItems = [];
     particles = [];
 
@@ -754,7 +716,6 @@
       enemyLasers.forEach(el => el.update(dt, canvasHeight));
       enemies.forEach(e => e.update(dt, canvasHeight));
       megaStones.forEach(ms => ms.update(dt, timestamp, enemyLasers, canvasHeight, canvasWidth, currentMode));
-      sideAttackShips.forEach(sas => sas.update(dt, timestamp, enemyLasers, canvasHeight, currentMode));
       shieldItems.forEach(si => si.update(dt, canvasHeight));
       particles.forEach(p => p.update(dt));
 
@@ -764,14 +725,12 @@
       enemyLasers.forEach(el => el.draw(ctx));
       enemies = enemies.filter(e => !e.markedForDeletion);
       megaStones = megaStones.filter(ms => !ms.markedForDeletion);
-      sideAttackShips = sideAttackShips.filter(sas => !sas.markedForDeletion);
       shieldItems = shieldItems.filter(si => !si.markedForDeletion);
       particles = particles.filter(p => !p.markedForDeletion);
 
       lasers.forEach(l => l.draw(ctx));
       enemies.forEach(e => e.draw(ctx));
       megaStones.forEach(ms => ms.draw(ctx, currentMode));
-      sideAttackShips.forEach(sas => sas.draw(ctx));
       shieldItems.forEach(si => si.draw(ctx));
       particles.forEach(p => p.draw(ctx));
       player.draw(ctx, selectedWeaponId);
@@ -781,7 +740,6 @@
       enemyLasers.forEach(el => el.draw(ctx));
       enemies.forEach(e => e.draw(ctx));
       megaStones.forEach(ms => ms.draw(ctx, currentMode));
-      sideAttackShips.forEach(sas => sas.draw(ctx));
       shieldItems.forEach(si => si.draw(ctx));
       particles.forEach(p => p.draw(ctx));
       player.draw(ctx, selectedWeaponId);
