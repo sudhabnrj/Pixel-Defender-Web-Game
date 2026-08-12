@@ -11,10 +11,31 @@ const bgEasyImg = new Image(); bgEasyImg.src = 'images/bg-easy.webp';
 const bgMediumImg = new Image(); bgMediumImg.src = 'images/bg-medium.webp';
 const bgHardImg = new Image(); bgHardImg.src = 'images/bg-hard.webp';
 
-const dangerShipEasyImage = new Image(); dangerShipEasyImage.src = 'images/danger-ship-easy.webp';
-const dangerShipMediumImage = new Image(); dangerShipMediumImage.src = 'images/danger-ship-medium.webp';
-const dangerShipHardImage = new Image(); dangerShipHardImage.src = 'images/danger-ship-hard.webp';
+// Danger Ship Images for Levels 1–50
+const dangerShipImages = {
+  easy: new Image(),
+  easy8: new Image(),
+  medium: new Image(),
+  hard: new Image(),
+  easy6: new Image(),
+  easy5: new Image(),
+  easy4: new Image(),
+  easy9: new Image(),
+  easy7: new Image()
+};
+dangerShipImages.easy.src = 'images/danger-ship-easy.webp';
+dangerShipImages.easy8.src = 'images/danger-ship-easy8.webp';
+dangerShipImages.medium.src = 'images/danger-ship-medium.webp';
+dangerShipImages.hard.src = 'images/danger-ship-hard.webp';
+dangerShipImages.easy6.src = 'images/danger-ship-easy6.webp';
+dangerShipImages.easy5.src = 'images/danger-ship-easy5.webp';
+dangerShipImages.easy4.src = 'images/danger-ship-easy4.webp';
+dangerShipImages.easy9.src = 'images/danger-ship-easy9.webp';
+dangerShipImages.easy7.src = 'images/danger-ship-easy7.webp';
 
+// Preload Group Stone Sprite
+const stoneGroupImg = new Image();
+stoneGroupImg.src = 'images/stone-group.webp';
 
 // Preload Custom Stone WebP Sprites
 const stoneImages = [];
@@ -37,14 +58,14 @@ const WEAPONS = {
   2: {
     id: 2,
     name: 'PHOENIX SPREAD',
-    reqLevel: 5,
+    reqLevel: 11,
     cooldown: 130, // ms
     description: '5-Way Plasma & Drone Cannon'
   },
   3: {
     id: 3,
     name: 'ADVANCE - HYPER BEAM',
-    reqLevel: 10,
+    reqLevel: 26,
     cooldown: 110, // ms
     description: 'Heavy Advance Plasma Beam'
   }
@@ -476,6 +497,79 @@ class Enemy {
   }
 }
 
+// Large Group Asteroid (Spawns after Level 10, Harder to destroy)
+class GroupStone {
+  constructor(lvl, canvasWidth) {
+    this.lvl = lvl;
+    this.width = 72;
+    this.height = 72;
+    this.x = Math.random() * (canvasWidth - 140) + 70;
+    this.y = -this.height * 1.5;
+    this.speed = 115 + (lvl - 1) * 2;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotationSpeed = (Math.random() - 0.5) * 1.2;
+
+    this.maxHp = 5;
+    this.hp = this.maxHp;
+    this.hitFlashTimer = 0;
+    this.markedForDeletion = false;
+  }
+
+  update(dt, canvasHeight) {
+    this.y += this.speed * dt;
+    this.rotation += this.rotationSpeed * dt;
+
+    if (this.hitFlashTimer > 0) {
+      this.hitFlashTimer -= dt;
+    }
+
+    if (this.y > canvasHeight + this.height * 2) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+
+    if (this.hitFlashTimer > 0) {
+      ctx.shadowBlur = 24;
+      ctx.shadowColor = '#00ffff';
+    } else {
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = '#ffaa00';
+    }
+
+    if (stoneGroupImg.complete && stoneGroupImg.naturalWidth !== 0) {
+      ctx.drawImage(stoneGroupImg, -this.width / 2, -this.height / 2, this.width, this.height);
+    } else {
+      ctx.fillStyle = '#ffaa00';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.width / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    // Render Health Bar
+    ctx.save();
+    const barW = 56;
+    const barH = 5;
+    const barX = this.x - barW / 2;
+    const barY = this.y - this.height / 2 - 10;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillRect(barX, barY, (this.hp / this.maxHp) * barW, barH);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(barX, barY, barW, barH);
+    ctx.restore();
+  }
+}
+
 // Shooter Danger Ship Boss
 class MegaStone {
   constructor(lvl, canvasWidth) {
@@ -558,11 +652,19 @@ class MegaStone {
       ctx.shadowColor = '#ff0055';
     }
 
-    let shipImg = dangerShipEasyImage;
-    if (mode === 'HARD') {
-      shipImg = (dangerShipHardImage.complete && dangerShipHardImage.naturalWidth !== 0) ? dangerShipHardImage : dangerShipEasyImage;
-    } else if (mode === 'MEDIUM') {
-      shipImg = (dangerShipMediumImage.complete && dangerShipMediumImage.naturalWidth !== 0) ? dangerShipMediumImage : dangerShipEasyImage;
+    let shipImg = dangerShipImages.easy;
+    if (this.lvl >= 41) shipImg = dangerShipImages.easy7;
+    else if (this.lvl >= 36) shipImg = dangerShipImages.easy9;
+    else if (this.lvl >= 31) shipImg = dangerShipImages.easy4;
+    else if (this.lvl >= 26) shipImg = dangerShipImages.easy5;
+    else if (this.lvl >= 21) shipImg = dangerShipImages.easy6;
+    else if (this.lvl >= 16) shipImg = dangerShipImages.hard;
+    else if (this.lvl >= 11) shipImg = dangerShipImages.medium;
+    else if (this.lvl >= 6) shipImg = dangerShipImages.easy8;
+    else shipImg = dangerShipImages.easy;
+
+    if (!shipImg.complete || shipImg.naturalWidth === 0) {
+      shipImg = dangerShipImages.easy;
     }
 
     if (shipImg.complete && shipImg.naturalWidth !== 0) {

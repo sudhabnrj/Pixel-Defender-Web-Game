@@ -139,6 +139,7 @@
   let lastTime = 0;
   let spawnTimer = 0;
   let megaStoneSpawnTimer = 0;
+  let groupStoneSpawnTimer = 0;
   let shieldItemSpawnTimer = 0;
   let screenShake = 0;
 
@@ -148,6 +149,7 @@
   let enemyLasers = [];
   let enemies = [];
   let megaStones = [];
+  let groupStones = [];
   let shieldItems = [];
   let particles = [];
 
@@ -427,10 +429,10 @@
               updateWorldBackground(level);
               updateWeaponLockUI();
 
-              if (level === 5) {
+              if (level === 11) {
                 selectWeapon(2);
                 showBanner('AUTOMATIC UPGRADE: HERO EVOLVED TO PHOENIX SPREAD!');
-              } else if (level === 10) {
+              } else if (level === 26) {
                 selectWeapon(3);
                 showBanner('AUTOMATIC UPGRADE: HERO EVOLVED TO HYPER BEAM!');
               }
@@ -444,6 +446,32 @@
             }
 
             createExplosion(enemy.x, enemy.y, enemy.isDanger ? '#ff0055' : '#ffaa00', 18);
+          }
+          break;
+        }
+      }
+
+      for (let gs = groupStones.length - 1; gs >= 0; gs--) {
+        const groupStone = groupStones[gs];
+        const dx = laser.x - groupStone.x;
+        const dy = laser.y - groupStone.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < groupStone.width / 2 + laser.width) {
+          if (!laser.isCentral) laser.markedForDeletion = true;
+          groupStone.hp -= 1;
+          groupStone.hitFlashTimer = 0.08;
+
+          createExplosion(laser.x, laser.y, '#ffaa00', 6);
+
+          if (groupStone.hp <= 0) {
+            groupStone.markedForDeletion = true;
+            score += 250;
+            sounds.playLevelUp();
+
+            showBanner('GROUP ASTEROID DESTROYED! +250 PTS!');
+            createExplosion(groupStone.x, groupStone.y, '#ffaa00', 45, true);
+            updateHUD();
           }
           break;
         }
@@ -565,6 +593,15 @@
       triggerDangerBossAlert();
     }
 
+    if (level > 10) {
+      groupStoneSpawnTimer += dt;
+      if (groupStoneSpawnTimer >= 16 && groupStones.length === 0) {
+        groupStoneSpawnTimer = 0;
+        groupStones.push(new GroupStone(level, canvasWidth));
+        showBanner('⚠️ LARGE GROUP ASTEROID APPROACHING!');
+      }
+    }
+
     shieldItemSpawnTimer += dt;
     if (shieldItemSpawnTimer >= 75 && shieldItems.length === 0) {
       shieldItemSpawnTimer = 0;
@@ -604,6 +641,7 @@
     currentMode = 'EASY';
     spawnTimer = 0;
     megaStoneSpawnTimer = 0;
+    groupStoneSpawnTimer = 0;
     shieldItemSpawnTimer = 0;
     screenShake = 0;
     selectedWeaponId = 1;
@@ -612,6 +650,7 @@
     enemyLasers = [];
     enemies = [];
     megaStones = [];
+    groupStones = [];
     shieldItems = [];
     particles = [];
 
@@ -720,6 +759,7 @@
       enemyLasers.forEach(el => el.update(dt, canvasHeight));
       enemies.forEach(e => e.update(dt, canvasHeight));
       megaStones.forEach(ms => ms.update(dt, timestamp, enemyLasers, canvasHeight, canvasWidth, currentMode));
+      groupStones.forEach(gs => gs.update(dt, canvasHeight));
       shieldItems.forEach(si => si.update(dt, canvasHeight));
       particles.forEach(p => p.update(dt));
 
@@ -729,12 +769,14 @@
       enemyLasers.forEach(el => el.draw(ctx));
       enemies = enemies.filter(e => !e.markedForDeletion);
       megaStones = megaStones.filter(ms => !ms.markedForDeletion);
+      groupStones = groupStones.filter(gs => !gs.markedForDeletion);
       shieldItems = shieldItems.filter(si => !si.markedForDeletion);
       particles = particles.filter(p => !p.markedForDeletion);
 
       lasers.forEach(l => l.draw(ctx));
       enemies.forEach(e => e.draw(ctx));
       megaStones.forEach(ms => ms.draw(ctx, currentMode));
+      groupStones.forEach(gs => gs.draw(ctx));
       shieldItems.forEach(si => si.draw(ctx));
       particles.forEach(p => p.draw(ctx));
       player.draw(ctx, selectedWeaponId);
@@ -744,6 +786,7 @@
       enemyLasers.forEach(el => el.draw(ctx));
       enemies.forEach(e => e.draw(ctx));
       megaStones.forEach(ms => ms.draw(ctx, currentMode));
+      groupStones.forEach(gs => gs.draw(ctx));
       shieldItems.forEach(si => si.draw(ctx));
       particles.forEach(p => p.draw(ctx));
       player.draw(ctx, selectedWeaponId);
