@@ -610,7 +610,8 @@
   // ------------------------------------------------------------------------
   function updateHUD() {
     hudScore.textContent = score.toString().padStart(6, '0');
-    hudLevel.textContent = level;
+    hudLevel.textContent = `${level} / 100`;
+
 
     hudModeBadge.textContent = currentMode;
     hudModeBadge.className = `mode-badge ${currentMode.toLowerCase()}`;
@@ -703,7 +704,7 @@
     }
 
     finalScoreEl.textContent = score;
-    finalLevelEl.textContent = level;
+    finalLevelEl.textContent = `${level} / 100`;
     highScoreEl.textContent = highScore;
 
     if (isNewHigh) newHighScoreTag.classList.remove('hidden');
