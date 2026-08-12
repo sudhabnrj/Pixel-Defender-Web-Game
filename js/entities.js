@@ -501,11 +501,11 @@ class Enemy {
 class GroupStone {
   constructor(lvl, canvasWidth) {
     this.lvl = lvl;
-    this.width = 72;
-    this.height = 72;
-    this.x = Math.random() * (canvasWidth - 140) + 70;
+    this.width = 86;
+    this.height = 86;
+    this.x = Math.random() * (canvasWidth - 160) + 80;
     this.y = -this.height * 1.5;
-    this.speed = 115 + (lvl - 1) * 2;
+    this.speed = 110 + (lvl - 1) * 2;
     this.rotation = Math.random() * Math.PI * 2;
     this.rotationSpeed = (Math.random() - 0.5) * 1.2;
 

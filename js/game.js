@@ -430,6 +430,7 @@
               updateWeaponLockUI();
 
               if (level === 11) {
+                groupStoneSpawnTimer = 7.5;
                 selectWeapon(2);
                 showBanner('AUTOMATIC UPGRADE: HERO EVOLVED TO PHOENIX SPREAD!');
               } else if (level === 26) {
@@ -438,11 +439,11 @@
               }
 
               createExplosion(canvasWidth / 2, canvasHeight / 3, '#ffaa00', 45, true);
+            }
 
-              if (level === 50 && score >= 500 * 49 + 100) {
-                triggerVictory();
-                return;
-              }
+            if (level === 50 && score >= 24600) {
+              triggerVictory();
+              return;
             }
 
             createExplosion(enemy.x, enemy.y, enemy.isDanger ? '#ff0055' : '#ffaa00', 18);
@@ -595,7 +596,7 @@
 
     if (level > 10) {
       groupStoneSpawnTimer += dt;
-      if (groupStoneSpawnTimer >= 16 && groupStones.length === 0) {
+      if (groupStoneSpawnTimer >= 9 && groupStones.length === 0) {
         groupStoneSpawnTimer = 0;
         groupStones.push(new GroupStone(level, canvasWidth));
         showBanner('⚠️ LARGE GROUP ASTEROID APPROACHING!');
