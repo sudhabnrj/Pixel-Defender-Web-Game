@@ -38,22 +38,22 @@
   }
 
   const GALAXY_WORLDS = [
-    { id: 1, name: "WORLD 1 — PIXEL GALAXY", range: "Levels 1–10", minLvl: 1, maxLvl: 10, bg: "images/bg-theme/Pixel-Galaxy.webp" },
-    { id: 2, name: "WORLD 2 — RED NEBULA", range: "Levels 11–20", minLvl: 11, maxLvl: 20, bg: "images/bg-theme/Red-Nebula.webp" },
-    { id: 3, name: "WORLD 3 — ALIEN SECTOR", range: "Levels 21–30", minLvl: 21, maxLvl: 30, bg: "images/bg-theme/Alien-Sector.webp" },
-    { id: 4, name: "WORLD 4 — BLACK HOLE", range: "Levels 31–40", minLvl: 31, maxLvl: 40, bg: "images/bg-theme/Black-Hole.webp" },
-    { id: 5, name: "WORLD 5 — CYBER SPACE", range: "Levels 41–50", minLvl: 41, maxLvl: 50, bg: "images/bg-theme/Cyber-Space.webp" },
-    { id: 6, name: "WORLD 6 — ICE GALAXY", range: "Levels 51–60", minLvl: 51, maxLvl: 60, bg: "images/bg-theme/Ice-Galaxy.webp" },
-    { id: 7, name: "WORLD 7 — DESTROYED EARTH", range: "Levels 61–70", minLvl: 61, maxLvl: 70, bg: "images/bg-theme/Destroyed-Earth.webp" },
-    { id: 8, name: "WORLD 8 — DARK DIMENSION", range: "Levels 71–80", minLvl: 71, maxLvl: 80, bg: "images/bg-theme/Dark-Dimension.webp" },
-    { id: 9, name: "WORLD 9 — ALIEN EMPIRE", range: "Levels 81–90", minLvl: 81, maxLvl: 90, bg: "images/bg-theme/Alien-Empire.webp" },
-    { id: 10, name: "WORLD 10 — FINAL GALAXY", range: "Levels 91–100", minLvl: 91, maxLvl: 100, bg: "images/bg-theme/Final-Galaxy.webp" }
+    { id: 1, name: "WORLD 1 — PIXEL GALAXY", range: "Levels 1–5", minLvl: 1, maxLvl: 5, bg: "images/bg-theme/Pixel-Galaxy.webp" },
+    { id: 2, name: "WORLD 2 — RED NEBULA", range: "Levels 6–10", minLvl: 6, maxLvl: 10, bg: "images/bg-theme/Red-Nebula.webp" },
+    { id: 3, name: "WORLD 3 — ALIEN SECTOR", range: "Levels 11–15", minLvl: 11, maxLvl: 15, bg: "images/bg-theme/Alien-Sector.webp" },
+    { id: 4, name: "WORLD 4 — BLACK HOLE", range: "Levels 16–20", minLvl: 16, maxLvl: 20, bg: "images/bg-theme/Black-Hole.webp" },
+    { id: 5, name: "WORLD 5 — CYBER SPACE", range: "Levels 21–25", minLvl: 21, maxLvl: 25, bg: "images/bg-theme/Cyber-Space.webp" },
+    { id: 6, name: "WORLD 6 — ICE GALAXY", range: "Levels 26–30", minLvl: 26, maxLvl: 30, bg: "images/bg-theme/Ice-Galaxy.webp" },
+    { id: 7, name: "WORLD 7 — DESTROYED EARTH", range: "Levels 31–35", minLvl: 31, maxLvl: 35, bg: "images/bg-theme/Destroyed-Earth.webp" },
+    { id: 8, name: "WORLD 8 — DARK DIMENSION", range: "Levels 36–40", minLvl: 36, maxLvl: 40, bg: "images/bg-theme/Dark-Dimension.webp" },
+    { id: 9, name: "WORLD 9 — ALIEN EMPIRE", range: "Levels 41–45", minLvl: 41, maxLvl: 45, bg: "images/bg-theme/Alien-Empire.webp" },
+    { id: 10, name: "WORLD 10 — FINAL GALAXY", range: "Levels 46–50", minLvl: 46, maxLvl: 50, bg: "images/bg-theme/Final-Galaxy.webp" }
   ];
 
   let currentWorldId = 0;
 
   function updateWorldBackground(lvl, forceBanner = false) {
-    const safeLvl = Math.max(1, Math.min(100, lvl));
+    const safeLvl = Math.max(1, Math.min(50, lvl));
     const world = GALAXY_WORLDS.find(w => safeLvl >= w.minLvl && safeLvl <= w.maxLvl) || GALAXY_WORLDS[0];
 
     const bgUrl = `url("${encodeURI(world.bg)}")`;
@@ -349,10 +349,12 @@
   // ------------------------------------------------------------------------
   function checkDifficultyMode() {
     let newMode = 'EASY';
-    if (score >= 5000) {
+    if (level >= 26) {
       newMode = 'HARD';
-    } else if (score >= 2000) {
+    } else if (level >= 16) {
       newMode = 'MEDIUM';
+    } else {
+      newMode = 'EASY';
     }
 
     if (newMode !== currentMode) {
@@ -414,10 +416,11 @@
             checkDifficultyMode();
             updateHUD();
 
-            const newLevel = Math.min(100, Math.floor(score / 1200) + 1);
+            const newLevel = Math.min(50, Math.floor(score / 500) + 1);
             if (newLevel > level) {
               level = newLevel;
               sounds.playLevelUp();
+              checkDifficultyMode();
               updateHUD();
 
               updateContainerSizeForLevel(level);
@@ -434,7 +437,7 @@
 
               createExplosion(canvasWidth / 2, canvasHeight / 3, '#ffaa00', 45, true);
 
-              if (level === 100 && score >= 1200 * 99 + 100) {
+              if (level === 50 && score >= 500 * 49 + 100) {
                 triggerVictory();
                 return;
               }
@@ -574,7 +577,8 @@
   // ------------------------------------------------------------------------
   function updateHUD() {
     hudScore.textContent = score.toString().padStart(6, '0');
-    hudLevel.textContent = `${level} / 100`;
+    hudLevel.textContent = `${level} / 50`;
+
 
 
     hudModeBadge.textContent = currentMode;
@@ -666,7 +670,7 @@
     }
 
     finalScoreEl.textContent = score;
-    finalLevelEl.textContent = `${level} / 100`;
+    finalLevelEl.textContent = `${level} / 50`;
     highScoreEl.textContent = highScore;
 
     if (isNewHigh) newHighScoreTag.classList.remove('hidden');

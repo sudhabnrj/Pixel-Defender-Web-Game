@@ -524,41 +524,47 @@ class MegaStone {
     if (this.y >= 50 && timestamp / 1000 - this.lastShootTime >= shootInterval) {
       this.lastShootTime = timestamp / 1000;
 
-      if (currentMode === 'HARD') {
-        // HARD MODE (danger-ship-hard.webp): Massive Multi-Bullet Stream Barrage (12 Lasers Stream)
-        enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 560));
-        enemyLasers.push(new EnemyLaser(this.x - 12, this.y + 40, -35, 540));
-        enemyLasers.push(new EnemyLaser(this.x + 12, this.y + 40, 35, 540));
-
-        enemyLasers.push(new EnemyLaser(this.x - 24, this.y + 36, -110, 510));
-        enemyLasers.push(new EnemyLaser(this.x + 24, this.y + 36, 110, 510));
-
-        enemyLasers.push(new EnemyLaser(this.x - 36, this.y + 32, -210, 480));
-        enemyLasers.push(new EnemyLaser(this.x + 36, this.y + 32, 210, 480));
-
-        enemyLasers.push(new EnemyLaser(this.x - 48, this.y + 28, -320, 440));
-        enemyLasers.push(new EnemyLaser(this.x + 48, this.y + 28, 320, 440));
-
-        enemyLasers.push(new EnemyLaser(this.x - 60, this.y + 24, -440, 400));
-        enemyLasers.push(new EnemyLaser(this.x + 60, this.y + 24, 440, 400));
-        enemyLasers.push(new EnemyLaser(this.x - 72, this.y + 20, -560, 360));
-        enemyLasers.push(new EnemyLaser(this.x + 72, this.y + 20, 560, 360));
-
-      } else if (currentMode === 'MEDIUM') {
-        // MEDIUM MODE (danger-ship-medium.webp): Medium-Hard Multiple Shooting (5 Lasers Spread)
-        enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 480));
-
-        enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -120, 450));
-        enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 120, 450));
-
-        enemyLasers.push(new EnemyLaser(this.x - 48, this.y + 30, -240, 420));
-        enemyLasers.push(new EnemyLaser(this.x + 48, this.y + 30, 240, 420));
-
-      } else {
-        // EASY MODE (danger-ship-easy.webp): Standard Shooting (3 Lasers Spread)
+      if (this.lvl <= 25) {
+        // Normal Single Bullet Shooting (Before Level 25)
         enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 450));
-        enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -110, 430));
-        enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 110, 430));
+      } else {
+        // Multiple Bullets / Spread Barrage Shooting (After Level 25)
+        if (currentMode === 'HARD') {
+          // HARD MODE: Massive Multi-Bullet Stream Barrage (12 Lasers Stream)
+          enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 560));
+          enemyLasers.push(new EnemyLaser(this.x - 12, this.y + 40, -35, 540));
+          enemyLasers.push(new EnemyLaser(this.x + 12, this.y + 40, 35, 540));
+
+          enemyLasers.push(new EnemyLaser(this.x - 24, this.y + 36, -110, 510));
+          enemyLasers.push(new EnemyLaser(this.x + 24, this.y + 36, 110, 510));
+
+          enemyLasers.push(new EnemyLaser(this.x - 36, this.y + 32, -210, 480));
+          enemyLasers.push(new EnemyLaser(this.x + 36, this.y + 32, 210, 480));
+
+          enemyLasers.push(new EnemyLaser(this.x - 48, this.y + 28, -320, 440));
+          enemyLasers.push(new EnemyLaser(this.x + 48, this.y + 28, 320, 440));
+
+          enemyLasers.push(new EnemyLaser(this.x - 60, this.y + 24, -440, 400));
+          enemyLasers.push(new EnemyLaser(this.x + 60, this.y + 24, 440, 400));
+          enemyLasers.push(new EnemyLaser(this.x - 72, this.y + 20, -560, 360));
+          enemyLasers.push(new EnemyLaser(this.x + 72, this.y + 20, 560, 360));
+
+        } else if (currentMode === 'MEDIUM') {
+          // MEDIUM MODE: Medium Multiple Shooting (5 Lasers Spread)
+          enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 480));
+
+          enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -120, 450));
+          enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 120, 450));
+
+          enemyLasers.push(new EnemyLaser(this.x - 48, this.y + 30, -240, 420));
+          enemyLasers.push(new EnemyLaser(this.x + 48, this.y + 30, 240, 420));
+
+        } else {
+          // EASY MODE: Standard Multiple Shooting (3 Lasers Spread)
+          enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 450));
+          enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -110, 430));
+          enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 110, 430));
+        }
       }
     }
   }
