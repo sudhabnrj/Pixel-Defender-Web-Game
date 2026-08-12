@@ -487,8 +487,8 @@ class MegaStone {
     this.targetY = 85;
     this.descendSpeed = 75;
 
-    this.vx = (150 + (lvl - 1) * 3) * (Math.random() > 0.5 ? 1 : -1);
-    this.maxHp = Math.min(150, 50 + Math.floor((lvl - 1) * 1.5));
+    this.vx = (130 + (lvl - 1) * 2) * (Math.random() > 0.5 ? 1 : -1);
+    this.maxHp = Math.min(80, 30 + Math.floor((lvl - 1) * 1.1));
     this.hp = this.maxHp;
     
     this.lastShootTime = 0;
@@ -514,56 +514,33 @@ class MegaStone {
       this.hitFlashTimer -= dt;
     }
 
-    let shootInterval = Math.max(0.6, 1.2 - (this.lvl - 1) * 0.008);
+    let shootInterval = Math.max(1.2, 1.6 - (this.lvl - 1) * 0.01);
     if (currentMode === 'HARD') {
-      shootInterval = Math.max(0.35, 0.65 - (this.lvl - 1) * 0.008);
+      shootInterval = Math.max(1.0, 1.3 - (this.lvl - 1) * 0.01);
     } else if (currentMode === 'MEDIUM') {
-      shootInterval = Math.max(0.48, 0.9 - (this.lvl - 1) * 0.008);
+      shootInterval = Math.max(1.1, 1.45 - (this.lvl - 1) * 0.01);
     }
 
     if (this.y >= 50 && timestamp / 1000 - this.lastShootTime >= shootInterval) {
       this.lastShootTime = timestamp / 1000;
 
       if (this.lvl <= 25) {
-        // Normal Single Bullet Shooting (Before Level 25)
-        enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 450));
+        // Normal Single Bullet Shooting (Before Level 25 - Straight & Simple)
+        enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 380));
       } else {
-        // Multiple Bullets / Spread Barrage Shooting (After Level 25)
+        // Balanced Multi-Bullet Shooting (After Level 25 - Clean & Fair to Dodge)
         if (currentMode === 'HARD') {
-          // HARD MODE: Massive Multi-Bullet Stream Barrage (12 Lasers Stream)
-          enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 560));
-          enemyLasers.push(new EnemyLaser(this.x - 12, this.y + 40, -35, 540));
-          enemyLasers.push(new EnemyLaser(this.x + 12, this.y + 40, 35, 540));
-
-          enemyLasers.push(new EnemyLaser(this.x - 24, this.y + 36, -110, 510));
-          enemyLasers.push(new EnemyLaser(this.x + 24, this.y + 36, 110, 510));
-
-          enemyLasers.push(new EnemyLaser(this.x - 36, this.y + 32, -210, 480));
-          enemyLasers.push(new EnemyLaser(this.x + 36, this.y + 32, 210, 480));
-
-          enemyLasers.push(new EnemyLaser(this.x - 48, this.y + 28, -320, 440));
-          enemyLasers.push(new EnemyLaser(this.x + 48, this.y + 28, 320, 440));
-
-          enemyLasers.push(new EnemyLaser(this.x - 60, this.y + 24, -440, 400));
-          enemyLasers.push(new EnemyLaser(this.x + 60, this.y + 24, 440, 400));
-          enemyLasers.push(new EnemyLaser(this.x - 72, this.y + 20, -560, 360));
-          enemyLasers.push(new EnemyLaser(this.x + 72, this.y + 20, 560, 360));
-
-        } else if (currentMode === 'MEDIUM') {
-          // MEDIUM MODE: Medium Multiple Shooting (5 Lasers Spread)
-          enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 480));
-
-          enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -120, 450));
-          enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 120, 450));
-
-          enemyLasers.push(new EnemyLaser(this.x - 48, this.y + 30, -240, 420));
-          enemyLasers.push(new EnemyLaser(this.x + 48, this.y + 30, 240, 420));
-
+          // Clean 5-bullet fan spread with clear gaps
+          enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 420));
+          enemyLasers.push(new EnemyLaser(this.x - 20, this.y + 35, -80, 400));
+          enemyLasers.push(new EnemyLaser(this.x + 20, this.y + 35, 80, 400));
+          enemyLasers.push(new EnemyLaser(this.x - 40, this.y + 30, -160, 380));
+          enemyLasers.push(new EnemyLaser(this.x + 40, this.y + 30, 160, 380));
         } else {
-          // EASY MODE: Standard Multiple Shooting (3 Lasers Spread)
-          enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 450));
-          enemyLasers.push(new EnemyLaser(this.x - 26, this.y + 35, -110, 430));
-          enemyLasers.push(new EnemyLaser(this.x + 26, this.y + 35, 110, 430));
+          // Clean 3-bullet fan spread with wide gaps
+          enemyLasers.push(new EnemyLaser(this.x, this.y + 40, 0, 400));
+          enemyLasers.push(new EnemyLaser(this.x - 25, this.y + 35, -70, 380));
+          enemyLasers.push(new EnemyLaser(this.x + 25, this.y + 35, 70, 380));
         }
       }
     }
