@@ -501,13 +501,11 @@ class Enemy {
 class GroupStone {
   constructor(lvl, canvasWidth) {
     this.lvl = lvl;
-    this.width = 86;
-    this.height = 86;
-    this.x = Math.random() * (canvasWidth - 160) + 80;
+    this.width = 120;
+    this.height = 120;
+    this.x = Math.random() * (canvasWidth - 200) + 100;
     this.y = -this.height * 1.5;
-    this.speed = 110 + (lvl - 1) * 2;
-    this.rotation = Math.random() * Math.PI * 2;
-    this.rotationSpeed = (Math.random() - 0.5) * 1.2;
+    this.speed = 105 + (lvl - 1) * 2;
 
     this.maxHp = 5;
     this.hp = this.maxHp;
@@ -517,7 +515,6 @@ class GroupStone {
 
   update(dt, canvasHeight) {
     this.y += this.speed * dt;
-    this.rotation += this.rotationSpeed * dt;
 
     if (this.hitFlashTimer > 0) {
       this.hitFlashTimer -= dt;
@@ -531,13 +528,12 @@ class GroupStone {
   draw(ctx) {
     ctx.save();
     ctx.translate(this.x, this.y);
-    ctx.rotate(this.rotation);
 
     if (this.hitFlashTimer > 0) {
       ctx.shadowBlur = 24;
       ctx.shadowColor = '#00ffff';
     } else {
-      ctx.shadowBlur = 14;
+      ctx.shadowBlur = 16;
       ctx.shadowColor = '#ffaa00';
     }
 
@@ -554,10 +550,10 @@ class GroupStone {
 
     // Render Health Bar
     ctx.save();
-    const barW = 56;
-    const barH = 5;
+    const barW = 80;
+    const barH = 6;
     const barX = this.x - barW / 2;
-    const barY = this.y - this.height / 2 - 10;
+    const barY = this.y - this.height / 2 - 12;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.fillRect(barX, barY, barW, barH);
