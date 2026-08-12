@@ -177,7 +177,9 @@
     if (e.code === 'Digit3') selectWeapon(3);
 
     if (e.code === 'KeyP' || e.code === 'Escape') togglePause();
+    if (e.code === 'KeyC') toggleControls();
     if (e.code === 'KeyM') { sounds.init(); sounds.toggleMute(); }
+
 
     if (e.code === 'KeyR') {
       if (gameState === STATES.PLAYING || gameState === STATES.PAUSED || gameState === STATES.GAME_OVER || gameState === STATES.VICTORY) {
@@ -243,6 +245,45 @@
   resumeBtn.addEventListener('click', () => { togglePause(); });
   restartBtn.addEventListener('click', () => { sounds.init(); startGame(); });
 
+  const controlsModal = document.getElementById('controlsModal');
+  const closeControlsBtn = document.getElementById('closeControlsBtn');
+  let previousStateBeforeControls = null;
+
+  function toggleControls(forceOpen) {
+    if (!controlsModal) return;
+    const isHidden = controlsModal.classList.contains('hidden');
+    const shouldOpen = forceOpen !== undefined ? forceOpen : isHidden;
+
+    if (shouldOpen) {
+      if (gameState === STATES.PLAYING) {
+        previousStateBeforeControls = STATES.PLAYING;
+        gameState = STATES.PAUSED;
+      } else {
+        previousStateBeforeControls = gameState;
+      }
+      controlsModal.classList.remove('hidden');
+    } else {
+      controlsModal.classList.add('hidden');
+      if (previousStateBeforeControls === STATES.PLAYING && gameState === STATES.PAUSED) {
+        gameState = STATES.PLAYING;
+      }
+      previousStateBeforeControls = null;
+    }
+  }
+
+  document.querySelectorAll('.js-controls-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleControls(true);
+    });
+  });
+
+  if (closeControlsBtn) {
+    closeControlsBtn.addEventListener('click', () => {
+      toggleControls(false);
+    });
+  }
+
   document.querySelectorAll('.js-pause-btn').forEach(btn => {
     btn.addEventListener('click', () => { togglePause(); });
   });
@@ -258,6 +299,7 @@
   document.querySelectorAll('.js-quit-btn').forEach(btn => {
     btn.addEventListener('click', () => { quitGame(); });
   });
+
 
   function quitGame() {
     gameState = STATES.START;

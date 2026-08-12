@@ -217,6 +217,10 @@ html, body {
 
 .logout-link.hidden { display: none !important; }
 
+/* Global Hidden Utility */
+.hidden { display: none !important; }
+
+
 .user-profile-box {
   background: rgba(0, 255, 170, 0.08);
   border: 1.5px solid #00ffaa;
@@ -517,3 +521,85 @@ html, body {
 
 .stat-label { font-size: 10px; color: #ff99bb; margin-bottom: 4px; }
 .stat-value { font-size: 18px; color: #ffffff; font-weight: bold; font-family: 'GoodTiming', monospace, sans-serif; }
+
+/* ------------------------------------------------------------------------
+   CONTROLS MODAL & KEYBINDING STYLES
+   ------------------------------------------------------------------------ */
+.controls-modal-card {
+  background: rgba(12, 18, 36, 0.96);
+  border: 2px solid #00f0ff;
+  border-radius: 14px;
+  padding: 24px 28px;
+  max-width: 580px;
+  width: 90%;
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.35), inset 0 0 15px rgba(0, 240, 255, 0.15);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  position: relative;
+  z-index: 105;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 18px;
+  margin: 18px 0 24px 0;
+  text-align: left;
+}
+
+.control-row {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.control-row:hover {
+  border-color: #00f0ff;
+  background: rgba(0, 240, 255, 0.08);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+.control-action {
+  font-size: 12px;
+  color: #ddf5ff;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.control-keys {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+kbd {
+  background: linear-gradient(180deg, #2b3e63, #151e33);
+  border: 1.5px solid #00f0ff;
+  border-bottom: 3px solid #0088cc;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+  color: #ffffff;
+  font-family: 'GoodTiming', monospace, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 7px;
+  border-radius: 5px;
+  min-width: 22px;
+  text-align: center;
+  display: inline-block;
+}
+
+.controls-btn {
+  background: linear-gradient(135deg, #00c8ff, #0055ff) !important;
+  border-color: #00f0ff !important;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.4) !important;
+}
+
+.controls-btn:hover {
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.85), 0 0 10px #00f0ff !important;
+}
+

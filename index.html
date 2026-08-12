@@ -152,7 +152,10 @@
           <button type="button" class="guest-btn" id="guestPlayBtn">PLAY AS GUEST</button>
         </div>
 
-        <button class="arcade-btn" id="startBtn" style="margin-top:14px;">START GAME</button>
+        <div class="btn-group" style="margin-top:14px;">
+          <button class="arcade-btn" id="startBtn">START GAME</button>
+          <button class="arcade-btn controls-btn js-controls-btn">CONTROLS</button>
+        </div>
         <p class="action-prompt">PRESS SPACE TO START</p>
       </div>
 
@@ -182,6 +185,7 @@
 
         <div class="btn-group">
           <button class="arcade-btn" id="resumeBtn">RESUME GAME</button>
+          <button class="arcade-btn controls-btn js-controls-btn">CONTROLS</button>
           <button class="arcade-btn quit-btn js-logout-btn hidden" id="pauseLogoutBtn">LOGOUT</button>
           <button class="arcade-btn quit-btn js-quit-btn">QUIT GAME</button>
           <button class="icon-btn js-restart-btn" title="Restart Game (R)" style="width: 44px; height: 44px;">
@@ -199,6 +203,68 @@
         </div>
         <p class="action-prompt">PRESS P OR ESC TO RESUME</p>
       </div>
+
+      <!-- CONTROLS MODAL OVERLAY -->
+      <div class="screen-overlay hidden" id="controlsModal" style="z-index: 200;">
+        <div class="controls-modal-card">
+          <h2 class="game-title" style="font-size: 22px; color: #00f0ff; text-shadow: 0 0 15px #00f0ff; margin-bottom: 4px;">GAME CONTROLS</h2>
+          <p class="subtitle" style="font-size: 11px; margin-bottom: 12px;">Master your defender ship</p>
+
+          <div class="controls-grid">
+            <div class="control-row">
+              <span class="control-action">Move Ship (Horizontal)</span>
+              <div class="control-keys">
+                <kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd>
+              </div>
+            </div>
+            <div class="control-row">
+              <span class="control-action">Dodge Vertical</span>
+              <div class="control-keys">
+                <kbd>W</kbd><kbd>S</kbd> or <kbd>↑</kbd><kbd>↓</kbd>
+              </div>
+            </div>
+            <div class="control-row">
+              <span class="control-action">Fire Laser Cannon</span>
+              <div class="control-keys">
+                <kbd>Spacebar</kbd>
+              </div>
+            </div>
+            <div class="control-row">
+              <span class="control-action">Switch Weapons</span>
+              <div class="control-keys">
+                <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>
+              </div>
+            </div>
+            <div class="control-row">
+              <span class="control-action">Pause / Resume Game</span>
+              <div class="control-keys">
+                <kbd>P</kbd> or <kbd>ESC</kbd>
+              </div>
+            </div>
+            <div class="control-row">
+              <span class="control-action">Toggle Sound Effects</span>
+              <div class="control-keys">
+                <kbd>M</kbd>
+              </div>
+            </div>
+            <div class="control-row">
+              <span class="control-action">Quick Restart</span>
+              <div class="control-keys">
+                <kbd>R</kbd>
+              </div>
+            </div>
+            <div class="control-row">
+              <span class="control-action">Open Controls Menu</span>
+              <div class="control-keys">
+                <kbd>C</kbd>
+              </div>
+            </div>
+          </div>
+
+          <button class="arcade-btn" id="closeControlsBtn" style="padding: 8px 24px;">CLOSE CONTROLS</button>
+        </div>
+      </div>
+
 
       <!-- VICTORY SCREEN (Level 100 Completed!) -->
       <div class="screen-overlay hidden" id="victoryScreen">
