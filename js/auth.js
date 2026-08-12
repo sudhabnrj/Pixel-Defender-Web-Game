@@ -371,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.success) {
         const guestConvertBox = document.getElementById('guestConvertBox');
         if (guestConvertBox) guestConvertBox.classList.add('hidden');
+        authManager.showNotification(`Account created & score saved for ${res.name}!`, false, 'guestAuthNotif');
       } else {
         authManager.showNotification(res.message || 'Registration failed.', true, 'guestAuthNotif');
       }

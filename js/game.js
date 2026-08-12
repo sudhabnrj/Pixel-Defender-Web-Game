@@ -468,9 +468,10 @@
           if (groupStone.hp <= 0) {
             groupStone.markedForDeletion = true;
             score += 250;
-            sounds.playLevelUp();
+            player.shieldHp = Math.min(3, player.shieldHp + 1);
+            sounds.playShieldPickup();
 
-            showBanner('GROUP ASTEROID DESTROYED! +250 PTS!');
+            showBanner('🛡️ GROUP ASTEROID DESTROYED! +1 FORCEFIELD SHIELD!');
             createExplosion(groupStone.x, groupStone.y, '#ffaa00', 45, true);
             updateHUD();
           }
@@ -691,6 +692,19 @@
 
     if (victoryScore) victoryScore.textContent = score;
     if (victoryHighScore) victoryHighScore.textContent = highScore;
+
+    const isRegistered = window.authManager && (window.authManager.isUserRegistered ? window.authManager.isUserRegistered() : false);
+    if (guestConvertBox) {
+      if (!isRegistered) {
+        if (victoryScreen && !victoryScreen.contains(guestConvertBox)) {
+          victoryScreen.insertBefore(guestConvertBox, victoryScreen.querySelector('.btn-group'));
+        }
+        guestConvertBox.classList.remove('hidden');
+      } else {
+        guestConvertBox.classList.add('hidden');
+      }
+    }
+
     if (victoryScreen) victoryScreen.classList.remove('hidden');
   }
 
@@ -716,9 +730,12 @@
     if (isNewHigh) newHighScoreTag.classList.remove('hidden');
     else newHighScoreTag.classList.add('hidden');
 
-    const isRegistered = window.authManager && (window.authManager.isUserRegistered ? window.authManager.isUserRegistered() : !window.authManager.isGuest);
+    const isRegistered = window.authManager && (window.authManager.isUserRegistered ? window.authManager.isUserRegistered() : false);
     if (guestConvertBox) {
       if (!isRegistered) {
+        if (gameOverScreen && !gameOverScreen.contains(guestConvertBox)) {
+          gameOverScreen.insertBefore(guestConvertBox, gameOverScreen.querySelector('.btn-group'));
+        }
         guestConvertBox.classList.remove('hidden');
       } else {
         guestConvertBox.classList.add('hidden');

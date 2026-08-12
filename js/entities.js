@@ -72,8 +72,8 @@ const WEAPONS = {
 };
 
 class Star {
-  constructor(canvasWidth, canvasHeight) { 
-    this.reset(true, canvasWidth, canvasHeight); 
+  constructor(canvasWidth, canvasHeight) {
+    this.reset(true, canvasWidth, canvasHeight);
   }
 
   reset(randomY = false, canvasWidth = 800, canvasHeight = 600) {
@@ -225,14 +225,14 @@ class Player {
     if (weapon.id === 1) {
       lasers.push(new Laser(centerX - 10, this.y, 0, -780, '#00f0ff', 5, 18));
       lasers.push(new Laser(centerX + 10, this.y, 0, -780, '#00f0ff', 5, 18));
-    } 
+    }
     else if (weapon.id === 2) {
       lasers.push(new Laser(centerX, this.y - 5, 0, -840, '#ffcc00', 9, 26, true));
       lasers.push(new Laser(this.x + 10, this.y + 4, -130, -780, '#ffaa00', 6, 20));
       lasers.push(new Laser(this.x + this.width - 10, this.y + 4, 130, -780, '#ffaa00', 6, 20));
       lasers.push(new Laser(this.x - 24, this.y + 15, -230, -750, '#ff00aa', 5, 18));
       lasers.push(new Laser(this.x + this.width + 24, this.y + 15, 230, -750, '#ff00aa', 5, 18));
-    } 
+    }
     else if (weapon.id === 3) {
       lasers.push(new Laser(centerX - 8, this.y - 8, 0, -920, '#ffffff', 16, 32, true));
       lasers.push(new Laser(this.x + 6, this.y + 2, -190, -820, '#ffaa00', 7, 22));
@@ -243,8 +243,8 @@ class Player {
 
     for (let i = 0; i < 4; i++) {
       particles.push(new Particle(
-        centerX, this.y + this.height, 
-        (Math.random() - 0.5) * 50, Math.random() * 90 + 110, 
+        centerX, this.y + this.height,
+        (Math.random() - 0.5) * 50, Math.random() * 90 + 110,
         '#ffaa00', Math.random() * 3 + 2, 0.25
       ));
     }
@@ -501,13 +501,13 @@ class Enemy {
 class GroupStone {
   constructor(lvl, canvasWidth) {
     this.lvl = lvl;
-    this.width = 120;
-    this.height = 120;
+    this.width = 180;
+    this.height = 180;
     this.x = Math.random() * (canvasWidth - 200) + 100;
     this.y = -this.height * 1.5;
     this.speed = 105 + (lvl - 1) * 2;
 
-    this.maxHp = 5;
+    this.maxHp = 15;
     this.hp = this.maxHp;
     this.hitFlashTimer = 0;
     this.markedForDeletion = false;
@@ -550,10 +550,10 @@ class GroupStone {
 
     // Render Health Bar
     ctx.save();
-    const barW = 80;
-    const barH = 6;
+    const barW = 100;
+    const barH = 7;
     const barX = this.x - barW / 2;
-    const barY = this.y - this.height / 2 - 12;
+    const barY = this.y - this.height / 2 - 14;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.fillRect(barX, barY, barW, barH);
@@ -578,9 +578,9 @@ class MegaStone {
     this.descendSpeed = 75;
 
     this.vx = (130 + (lvl - 1) * 2) * (Math.random() > 0.5 ? 1 : -1);
-    this.maxHp = Math.min(80, 30 + Math.floor((lvl - 1) * 1.1));
+    this.maxHp = Math.min(180, 75 + Math.floor((lvl - 1) * 2.5));
     this.hp = this.maxHp;
-    
+
     this.lastShootTime = 0;
     this.markedForDeletion = false;
     this.hitFlashTimer = 0;
